@@ -1,5 +1,5 @@
 {
-  "name": "PiCode-marketplace",
+  "name": "CrewCo-marketplace",
   "owner": { "name": "Pavly Ayoub", "email": "pavlyremon@gmail.com" },
   "plugins": [
     { "name": "crewco", "source": "./" }

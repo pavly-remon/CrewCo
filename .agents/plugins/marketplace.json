@@ -1,6 +1,6 @@
 {
-  "name": "PiCode-marketplace",
-  "interface": { "displayName": "PiCode" },
+  "name": "CrewCo-marketplace",
+  "interface": { "displayName": "CrewCo" },
   "plugins": [
     { "name": "crewco", "source": "./", "category": "developer-tools" }
   ]

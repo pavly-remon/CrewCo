@@ -19,14 +19,14 @@ Claude Code:
 
 ```
 /plugin marketplace add pavly-remon/crewco
-/plugin install crewco@PiCode-marketplace
+/plugin install crewco@CrewCo-marketplace
 ```
 
 GitHub Copilot CLI:
 
 ```
 copilot plugin marketplace add pavly-remon/crewco
-copilot plugin install crewco@PiCode-marketplace
+copilot plugin install crewco@CrewCo-marketplace
 ```
 
 Antigravity CLI:
@@ -42,7 +42,7 @@ Codex CLI:
 codex plugin marketplace add pavly-remon/crewco
 ```
 
-then install `crewco` from the `PiCode` marketplace in `/plugins`.
+then install `crewco` from the `CrewCo` marketplace in `/plugins`.
 
 ## Commands
 
