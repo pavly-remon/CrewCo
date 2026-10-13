@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "One .crewbench/tasks/<task-id>/state.json. Written and read by bin/crewbench_state.py; see lib/dispatch.md's state.json section for the field-by-field protocol (when the Team Lead updates each one).",
+  "description": "One .crewco/tasks/<task-id>/state.json. Written and read by bin/crewco_state.py; see lib/dispatch.md's state.json section for the field-by-field protocol (when the Team Lead updates each one).",
   "properties": {
     "schema_version": {
       "type": "integer"

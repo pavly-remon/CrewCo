@@ -3,7 +3,7 @@
 CLIs' flags differ too much to fake generically) and, driven by env vars,
 optionally records its own pid, spawns a child that outlives a naive
 proc.kill(), and sleeps well past the test's --timeout so the run always
-times out. Proves crewbench_dispatch kills the whole process group.
+times out. Proves crewco_dispatch kills the whole process group.
 """
 import os
 import pathlib

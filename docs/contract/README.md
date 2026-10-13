@@ -1,4 +1,4 @@
-# The `.crewbench/` contract
+# The `.crewco/` contract
 
 This is the on-disk format the plugin (this repo's `bin/*.py` scripts,
 driven by the LLM Team Lead per `lib/dispatch.md`) reads and writes
@@ -7,11 +7,11 @@ drives the same tasks outside any host CLI — the files on disk are the
 single source of truth, not owned by either side. Every field, writer
 and reader is named explicitly here, not left implicit.
 
-Everything below lives under a project's `.crewbench/` directory (created
+Everything below lives under a project's `.crewco/` directory (created
 on demand, next to the project's `.git`).
 
 ```
-.crewbench/
+.crewco/
   team.json            user-owned, committable
   project.json          committable, written after user confirmation
   project.md            committable, user/edit-only free-form prose
@@ -35,13 +35,13 @@ on demand, next to the project's `.git`).
   wt/<task-id>/          git worktree (workspace.mode: worktree only)
 ```
 
-`.crewbench/tasks/` and `.crewbench/wt/` are added to `.git/info/exclude`
+`.crewco/tasks/` and `.crewco/wt/` are added to `.git/info/exclude`
 (never committed); `team.json`, `project.json`, `project.md` and
 `index.json` are meant to be committed (see each file's section).
 
 ## `team.json`
 
-**Written by:** the user, or `/crewbench:team set ...`. Never
+**Written by:** the user, or `/crewco:team set ...`. Never
 auto-generated.
 **Read by:** every skill, at the start of lineup resolution (`lib/dispatch.md`
 §1); the dispatch script does not read it directly — the Team Lead resolves
@@ -55,11 +55,11 @@ for the shape it overrides): `roles.<role>.{cli,model,effort,permissions}`,
 
 ## `project.json`
 
-**Written by:** `bin/crewbench_profile.py detect`, but only saved to disk
+**Written by:** `bin/crewco_profile.py detect`, but only saved to disk
 after the user confirms or corrects it (`lib/dispatch.md` §0's "Project
-profile"). `/crewbench:profile refresh` re-runs detection the same way.
+profile"). `/crewco:profile refresh` re-runs detection the same way.
 **Read by:** every role hand-off (a summary is included in each one);
-`bin/crewbench_gate.py` reads `commands` directly to decide which gate
+`bin/crewco_gate.py` reads `commands` directly to decide which gate
 steps to run.
 **Schema:** `schemas/project.json`. `additionalProperties: true` — this
 file already goes through a human-confirmation step, so it's loose by
@@ -68,7 +68,7 @@ design, unlike the strict per-role result schemas.
 
 ## `project.md`
 
-**Written by:** the user, or `/crewbench:profile edit`. crewbench never
+**Written by:** the user, or `/crewco:profile edit`. crewco never
 invents conventions and writes them here on its own.
 **Read by:** every role hand-off (its prose is summarized alongside
 `project.json`'s structured fields), if present.
@@ -78,26 +78,26 @@ styling approach, testing conventions).
 
 ## `index.json`
 
-**Written by:** `crewbench_state.py`'s `mutate_state()` — every `new`/
+**Written by:** `crewco_state.py`'s `mutate_state()` — every `new`/
 `set`/`append` call updates this file's entry for that task, under the
 same lock as the `state.json` write (see "Locking", below).
-**Read by:** `crewbench_state.py list` (`/crewbench:status` with no
+**Read by:** `crewco_state.py list` (`/crewco:status` with no
 argument); a future daemon's project-level task listing.
 **Shape:** `{ "<task-id>": { schema_version, id, command, title, phase,
 round, updated_at } }` — one entry per task, a denormalized summary of
 that task's `state.json` for cheap listing without opening every task
 folder.
 **Not committed** (excluded via `.git/info/exclude`, despite living at the
-`.crewbench/` root rather than under `tasks/`) — task activity is
+`.crewco/` root rather than under `tasks/`) — task activity is
 per-checkout, ephemeral state, not shared config.
 
 ## `tasks/<task-id>/state.json`
 
-**Written by:** `crewbench_state.py new`/`set`/`append`, exclusively —
+**Written by:** `crewco_state.py new`/`set`/`append`, exclusively —
 nothing else writes this file directly. The LLM Team Lead calls the
 script; it never hand-edits JSON.
-**Read by:** `crewbench_state.py get` (`/crewbench:status`,
-`/crewbench:resume`); every hand-off template (round history, lineup);
+**Read by:** `crewco_state.py get` (`/crewco:status`,
+`/crewco:resume`); every hand-off template (round history, lineup);
 the app's engine (Phase 1+), which must produce byte-for-byte the same
 shape so plugin- and app-created tasks stay interchangeable.
 **Schema:** `schemas/task-state.json`.
@@ -115,9 +115,9 @@ entry per fix-loop round: gate result, verdicts, open issue ids),
 
 ## `tasks/<task-id>/events.jsonl`
 
-**Written by:** `crewbench_fs.append_event()`, called from
-`crewbench_state.py` (task.\* events), `crewbench_dispatch.py` (run.\*,
-git.warning), and `crewbench_gate.py` (gate.finished). Append-only —
+**Written by:** `crewco_fs.append_event()`, called from
+`crewco_state.py` (task.\* events), `crewco_dispatch.py` (run.\*,
+git.warning), and `crewco_gate.py` (gate.finished). Append-only —
 nothing rewrites or truncates a line once written.
 **Read by:** nothing in the plugin today (write-side only — intended for
 a future daemon to tail, reading it incrementally by byte/seq offset).
@@ -136,12 +136,12 @@ exists.
 
 ## `tasks/<task-id>/runs/status.json`
 
-**Written by:** `crewbench_dispatch.py`'s `update_status()` — every
+**Written by:** `crewco_dispatch.py`'s `update_status()` — every
 `start`/foreground dispatch/`cancel` call merges fields into this file
 under that run's name, holding one lock across the whole
 read-modify-write.
-**Read by:** `crewbench_dispatch.py wait`/`cancel` (reads its own writes);
-`/crewbench:status` and `/crewbench:resume` (pid liveness checks, log
+**Read by:** `crewco_dispatch.py wait`/`cancel` (reads its own writes);
+`/crewco:status` and `/crewco:resume` (pid liveness checks, log
 paths, resume commands) read it directly, not through the script.
 **Shape:** `{ "<role>-r<round>": { schema_version, state
 ("starting"/"running"/"done"/"failed"), pid, launcher_pid, role, cli,
@@ -158,11 +158,11 @@ One family of files per run, all sharing the `<role>-r<round>` stem
 
 - **`.md`** — the hand-off text, written by the Team Lead before dispatch.
 - **`.prompt.md`** — the full assembled prompt (role brief + limits +
-  hand-off + result schema), written by `crewbench_dispatch.py`. Claude
+  hand-off + result schema), written by `crewco_dispatch.py`. Claude
   and codex read this from stdin; agy and copilot get a short pointer to
   its path instead (avoids `E2BIG` on large hand-offs).
 - **`.log`** — human-readable live log (`[HH:MM:SS] <line>` per entry),
-  written incrementally by `crewbench_dispatch.py` as the child CLI's
+  written incrementally by `crewco_dispatch.py` as the child CLI's
   output streams in. Local-time prefix, deliberately not UTC — this is
   for a human tailing the file, not a structured field (contrast with
   `events.jsonl`, which is UTC).
@@ -170,19 +170,19 @@ One family of files per run, all sharing the `<role>-r<round>` stem
   the full shape: `ok`, `exit_code`, `duration_s`, `result`, `usage`,
   `permission_denials`, `error`, `warnings`, `notes`, `session_id`,
   `resume_command`, plus `schema_version`). Written once, at the end of
-  the run, by `crewbench_dispatch.py`'s `finish()`.
+  the run, by `crewco_dispatch.py`'s `finish()`.
 - **`.raw.txt`** — raw stdout+stderr, for debugging a parser mismatch.
 
 **Read by:** the Team Lead (merges `result` into the fix list, reports
-`usage`/`warnings`/`notes` to the user); `/crewbench:status` (reads
+`usage`/`warnings`/`notes` to the user); `/crewco:status` (reads
 `.result.json` for `resume_command`); the app's runner (Phase 1+), which
-must write this same file family so the plugin's `/crewbench:status` can
+must write this same file family so the plugin's `/crewco:status` can
 read an app-created task's runs.
 **Not committed.**
 
 ## `tasks/<task-id>/runs/gate-r<round>.*`
 
-**Written by:** `bin/crewbench_gate.py`'s `run_gate()`.
+**Written by:** `bin/crewco_gate.py`'s `run_gate()`.
 **Read by:** the Team Lead (folds the gate result into `state.json.rounds`
 by hand — the gate script itself only writes the run's own files plus a
 `gate.finished` event, it does not touch `state.json`).
@@ -193,14 +193,14 @@ duration_s, timed_out, output_tail } ] }`.
 ## Locking
 
 Every read-modify-write against a shared file goes through
-`bin/crewbench_fs.py`'s `locked_read_modify_write()` (POSIX `fcntl.flock`,
+`bin/crewco_fs.py`'s `locked_read_modify_write()` (POSIX `fcntl.flock`,
 Windows `msvcrt.locking`), so two concurrent writers — most commonly a
 tester run and a reviewer run finishing at the same moment — never lose
 an update or interleave a partial write:
 
-- **`state.json` + `index.json`**: `crewbench_state.py`'s `mutate_state()`
+- **`state.json` + `index.json`**: `crewco_state.py`'s `mutate_state()`
   takes the per-task `.state.json.lock` first, then — still inside it —
-  the shared `.index.json.lock` at the `.crewbench` root (shared because
+  the shared `.index.json.lock` at the `.crewco` root (shared because
   `index.json` itself is shared across every task under that root). Lock
   order is always state-then-index, so two different tasks' writes can
   never deadlock on each other.
@@ -210,7 +210,7 @@ an update or interleave a partial write:
   computing the next `seq` (by reading the file's last line) and
   appending the new one.
 
-A reader (e.g. `/crewbench:status`, or a future daemon's file watcher)
+A reader (e.g. `/crewco:status`, or a future daemon's file watcher)
 does not need to take any lock — every write is atomic (temp file +
 rename for the JSON files; a single `write()` + `\n` for one
 `events.jsonl` line under its own lock), so a reader never sees a
@@ -242,19 +242,19 @@ and vice versa.
 
 Every timestamp in a **structured field** (`created_at`, `updated_at`,
 `started_at`, `finished_at`, every `events.jsonl` `ts`) is UTC ISO-8601
-with an explicit `Z` offset (`crewbench_fs.now_iso()`), e.g.
+with an explicit `Z` offset (`crewco_fs.now_iso()`), e.g.
 `2026-09-18T14:03:22Z`. A reader must still accept the old naive-local
 format (no offset) from before this phase —
-`crewbench_fs.parse_legacy_or_utc()` handles both, treating a naive value
+`crewco_fs.parse_legacy_or_utc()` handles both, treating a naive value
 as local time. **Human-facing log lines** (`.log` files' `[HH:MM:SS]`
 prefix) intentionally keep a short local-time format — they're for a
 person tailing the file, not a machine comparing timestamps.
 
 ## What a standalone app must preserve
 
-Any standalone app that writes into `.crewbench/` must produce files a
-plugin-side reader (`crewbench_state.py`, `/crewbench:status`,
-`/crewbench:resume`) can read without modification, and vice versa.
+Any standalone app that writes into `.crewco/` must produce files a
+plugin-side reader (`crewco_state.py`, `/crewco:status`,
+`/crewco:resume`) can read without modification, and vice versa.
 Concretely, that means: the same `state.json`/`index.json`/`status.json`
 shapes (including `schema_version` and the locking discipline above), the
 same task-id format, the same run-artifact file family and naming

@@ -1,7 +1,7 @@
-<img width="200" height="200" alt="CrewBench Logo-selection" src="https://github.com/user-attachments/assets/792e01b5-8351-43ba-9c1d-06d1a4870c1c" />
+<img width="200" height="200" alt="CrewCo Logo-selection" src="https://github.com/user-attachments/assets/792e01b5-8351-43ba-9c1d-06d1a4870c1c" />
 
 
-# CrewBench
+# CrewCo
 
 Runs a task through a five-role dev team — a Team Lead that scopes and
 delegates, plus Developer, Tester, Code Reviewer, and (opt-in) UI/UX
@@ -9,60 +9,60 @@ Designer roles. Each role can run on its own CLI, model and reasoning
 effort, across Claude Code, GitHub Copilot CLI, Antigravity CLI (`agy`)
 and Codex CLI.
 
-Slash commands (`/crewbench:new-task`, ...) inside Claude Code, Copilot
+Slash commands (`/crewco:new-task`, ...) inside Claude Code, Copilot
 CLI, Antigravity, or Codex — all sharing the same on-disk task state
-(`.crewbench/`).
+(`.crewco/`).
 
 ## Install
 
 Claude Code:
 
 ```
-/plugin marketplace add pavly-remon/crewbench
-/plugin install crewbench@PiCode-marketplace
+/plugin marketplace add pavly-remon/crewco
+/plugin install crewco@PiCode-marketplace
 ```
 
 GitHub Copilot CLI:
 
 ```
-copilot plugin marketplace add pavly-remon/crewbench
-copilot plugin install crewbench@PiCode-marketplace
+copilot plugin marketplace add pavly-remon/crewco
+copilot plugin install crewco@PiCode-marketplace
 ```
 
 Antigravity CLI:
 
 ```
-git clone https://github.com/pavly-remon/crewbench.git
-agy plugin install ./crewbench
+git clone https://github.com/pavly-remon/crewco.git
+agy plugin install ./crewco
 ```
 
 Codex CLI:
 
 ```
-codex plugin marketplace add pavly-remon/crewbench
+codex plugin marketplace add pavly-remon/crewco
 ```
 
-then install `crewbench` from the `PiCode` marketplace in `/plugins`.
+then install `crewco` from the `PiCode` marketplace in `/plugins`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/crewbench:new-task <task description> [flags]` | Full workflow: scope, (optional) design, implement, test + review, fix loop |
-| `/crewbench:test <scenario> [--yes]` | Tester writes and/or runs tests for one scenario and reports pass/fail |
-| `/crewbench:review <branch> [base] [--yes]` | Code reviewer reviews a branch's changes against `base` (default branch if omitted) |
-| `/crewbench:design <description> [--yes]` | UI/UX designer produces an implementable design spec |
-| `/crewbench:team [change]` | Show or change the team lineup (CLI, model, effort per role) |
-| `/crewbench:status [task-id]` | Recent tasks, or one task's phase/lineup/rounds/running runs. Read-only |
-| `/crewbench:resume [task-id]` | Resume an interrupted task from its saved state, without re-asking the lineup |
-| `/crewbench:doctor` | Check that every CLI in the lineup is installed, reachable and logged in from this host. Read-only |
-| `/crewbench:profile [show\|refresh\|edit <change>]` | Show, (re)detect, or edit the project profile (`.crewbench/project.json`/`project.md`) |
+| `/crewco:new-task <task description> [flags]` | Full workflow: scope, (optional) design, implement, test + review, fix loop |
+| `/crewco:test <scenario> [--yes]` | Tester writes and/or runs tests for one scenario and reports pass/fail |
+| `/crewco:review <branch> [base] [--yes]` | Code reviewer reviews a branch's changes against `base` (default branch if omitted) |
+| `/crewco:design <description> [--yes]` | UI/UX designer produces an implementable design spec |
+| `/crewco:team [change]` | Show or change the team lineup (CLI, model, effort per role) |
+| `/crewco:status [task-id]` | Recent tasks, or one task's phase/lineup/rounds/running runs. Read-only |
+| `/crewco:resume [task-id]` | Resume an interrupted task from its saved state, without re-asking the lineup |
+| `/crewco:doctor` | Check that every CLI in the lineup is installed, reachable and logged in from this host. Read-only |
+| `/crewco:profile [show\|refresh\|edit <change>]` | Show, (re)detect, or edit the project profile (`.crewco/project.json`/`project.md`) |
 
 In Codex, invoke the skills by name (`$new-task`, `$test`, `$review`,
 `$design`, `$team`, `$status`, `$resume`, `$doctor`, `$profile`).
 
 `test`, `review`, and `design` only report — they never change your code. Each
-offers to hand its results to `/crewbench:new-task` if you want something
+offers to hand its results to `/crewco:new-task` if you want something
 fixed or built.
 
 ### new-task workflow
@@ -72,13 +72,13 @@ The Team Lead will:
 1. Ask clarifying questions if the task is underspecified.
 2. Offer a UI/UX spec if the task touches the UI (only runs if you say yes).
 3. Show the team lineup and let you keep or change it.
-4. Isolate the task in a git worktree (`.crewbench/wt/<task-id>`, default —
+4. Isolate the task in a git worktree (`.crewco/wt/<task-id>`, default —
    set `workspace.mode: in-place` to work directly in your checkout
    instead). Asks first if your tree is dirty, and about running an
    install command in the fresh worktree.
 5. Hand implementation to the developer.
 6. Run the deterministic gate (`format_check`/`lint`/`typecheck`/
-   `test_changed` from `.crewbench/project.json`, whichever are
+   `test_changed` from `.crewco/project.json`, whichever are
    configured). A failing step goes straight back to the developer as that
    round's fix list — no tester/reviewer run that round.
 7. Once the gate passes (or nothing is configured), run the tester and
@@ -94,9 +94,9 @@ The Team Lead will:
    commit back (merge, cherry-pick, leave the branch, or nothing yet)
    before offering to remove the worktree.
 
-The first `new-task` in a project with no `.crewbench/project.json` runs
-`bin/crewbench_profile.py detect` and asks you to confirm the result once
-before delegating anything — see `/crewbench:profile` to show, refresh or
+The first `new-task` in a project with no `.crewco/project.json` runs
+`bin/crewco_profile.py detect` and asks you to confirm the result once
+before delegating anything — see `/crewco:profile` to show, refresh or
 edit it any time after that.
 
 ### Flags
@@ -115,21 +115,21 @@ description):
 | `--review <cli[:model]>` | `new-task` | Same, for `code-reviewer`. |
 
 Flags only affect the one invocation — none of them get saved to
-`.crewbench/team.json` on their own.
+`.crewco/team.json` on their own.
 
 By default (`confirm_lineup: when_unsaved`), the Team Lead only asks about
-the lineup when there's no saved `.crewbench/team.json` yet; once one
+the lineup when there's no saved `.crewco/team.json` yet; once one
 exists, it just shows the table and proceeds. Set `confirm_lineup` to
-`always` (ask every time) or `never` (never ask) in `/crewbench:team` if
+`always` (ask every time) or `never` (never ask) in `/crewco:team` if
 you want different behavior.
 
 ## Project profile
 
-`.crewbench/project.json` (machine-readable) and `project.md` (short,
+`.crewco/project.json` (machine-readable) and `project.md` (short,
 free-form conventions) tell every role your project's lint/test/build
 commands and shape instead of making each one rediscover configs. The
 first `new-task` in a project without one runs detection and asks you to
-confirm it once; `/crewbench:profile [show|refresh|edit <change>]` shows,
+confirm it once; `/crewco:profile [show|refresh|edit <change>]` shows,
 re-detects, or edits it any time after that.
 
 ```json
@@ -152,7 +152,7 @@ re-detects, or edits it any time after that.
 
 `commands` feeds the deterministic gate directly (below); `agy_allow_rules`
 are suggested-only snippets for your own `~/.gemini/antigravity-cli/
-settings.json` — crewbench shows them, never writes them. Nothing here is
+settings.json` — crewco shows them, never writes them. Nothing here is
 ever saved without you confirming it first.
 
 ### Deterministic gate
@@ -188,7 +188,7 @@ Tiers resolve per CLI:
 Before delegating, the Team Lead shows the lineup and asks whether to keep
 it. Tell it what you want in plain language — "reviewer on codex with high
 effort", "developer on agy with gemini flash", "everyone on opus" — and it
-will use that for the task, and optionally save it to `.crewbench/team.json` in your
+will use that for the task, and optionally save it to `.crewco/team.json` in your
 project:
 
 ```json
@@ -217,10 +217,10 @@ tier or an exact model name; `effort` is `low`–`max`; `permissions` is
 `loop.fix_threshold` is the minimum reviewer severity that triggers another
 round (`blocker` > `major` > `minor`, default `major`).
 `workspace.mode` is `worktree` (default — `new-task` isolates each task in
-`.crewbench/wt/<task-id>`) or `in-place`; `workspace.setup` are commands to
+`.crewco/wt/<task-id>`) or `in-place`; `workspace.setup` are commands to
 run once in a fresh worktree (e.g. install deps). `confirm_lineup` is
 `always`, `when_unsaved` (default), or `never` — see "Flags" above.
-Change any of these with `/crewbench:team`. Defaults live in
+Change any of these with `/crewco:team`. Defaults live in
 [`config/defaults.json`](config/defaults.json).
 
 ### How roles are run
@@ -228,11 +228,11 @@ Change any of these with `/crewbench:team`. Defaults live in
 - **Native subagent** when the role stays on the host CLI and the host can
   apply the model and effort (Claude Code always for model; Copilot when
   using the defaults).
-- **Headless CLI** otherwise, through `bin/crewbench_dispatch.py`. Any CLI
+- **Headless CLI** otherwise, through `bin/crewco_dispatch.py`. Any CLI
   can be the Team Lead and hand any role to any other CLI — e.g. `agy` as
   Team Lead with Claude as developer, or Claude as Team Lead with Codex as
   reviewer. The other CLI must be installed and logged in; run
-  `/crewbench:doctor` to check. Not every host x role-CLI combination has
+  `/crewco:doctor` to check. Not every host x role-CLI combination has
   been run for real yet — see [`docs/compatibility.md`](docs/compatibility.md)
   for exactly what's verified today before relying on an unusual pairing.
 
@@ -258,18 +258,18 @@ Each role runs in one of two permission modes, set per role in the lineup.
 role never stops for approval: Claude `bypassPermissions`, agy
 `--dangerously-skip-permissions` (still sandboxed), Codex
 `danger-full-access`, Copilot `--allow-all-tools`. A `skip` role can run any
-command on your machine; set it to `safe` in `.crewbench/team.json` or via
-`/crewbench:team` if that's not what you want.
+command on your machine; set it to `safe` in `.crewco/team.json` or via
+`/crewco:team` if that's not what you want.
 
 ### Git safety and worktree isolation
 
 `new-task` isolates each task in its own git worktree by default
-(`.crewbench/wt/<task-id>`, branch `crew/<task-id>` — see the workflow
+(`.crewco/wt/<task-id>`, branch `crew/<task-id>` — see the workflow
 above and `workspace.mode` below to opt out). `test`, `review` and
 `design` always work in your current checkout, since they never change
 code.
 
-Before and after every role's run, crewbench snapshots HEAD, branch,
+Before and after every role's run, crewco snapshots HEAD, branch,
 remote refs, the stash list, and a content hash of every dirty
 (modified/added/untracked) path, and warns you — never undoes anything
 automatically — if a role:
@@ -301,10 +301,10 @@ above) and the Team Lead tells you before doing anything else.
 agent with permission checks skipped. Approve the dispatch when prompted
 (`/permissions` → Recently denied → `r`), or allow it in your own
 `~/.claude/settings.json`, e.g.
-`"permissions": {"allow": ["Bash(python3 */crewbench_dispatch.py *)"]}`.
-`/crewbench:team` (and the first dispatch of a session) checks for this
+`"permissions": {"allow": ["Bash(python3 */crewco_dispatch.py *)"]}`.
+`/crewco:team` (and the first dispatch of a session) checks for this
 allow-list entry and shows you the exact line to add if it's missing —
-crewbench never edits the file itself.
+crewco never edits the file itself.
 
 **Using `agy` for a role:** reads and edits inside the project work out of
 the box, and `agy` roles are told to use their file tools instead of
@@ -319,7 +319,7 @@ word-by-word prefixes, and `*` only works on its own:
 | `command(regex:npm run (build\|lint\|test))` | those three scripts |
 | `command(ls*)` | nothing — agy reads `ls*` literally |
 
-If a role's run is stopped by a denied command anyway, crewbench resumes
+If a role's run is stopped by a denied command anyway, crewco resumes
 the same `agy` session, tells it the command stays denied, and lets it
 finish (up to 2 times). Denied commands show up in the result's
 `permission_denials`, and allow rules that can never match show up in
@@ -331,7 +331,7 @@ Each headless role writes a live log. The Team Lead tells you the command
 when a role starts:
 
 ```
-tail -f .crewbench/tasks/<task-id>/runs/developer-r1.log
+tail -f .crewco/tasks/<task-id>/runs/developer-r1.log
 ```
 
 ```
@@ -342,16 +342,16 @@ tail -f .crewbench/tasks/<task-id>/runs/developer-r1.log
 ```
 
 `<task-dir>/runs/status.json` lists every run (running / done / failed) with
-its log and session id — or just ask `/crewbench:status <task-id>`. When a
+its log and session id — or just ask `/crewco:status <task-id>`. When a
 role finishes, its result includes a `resume_command` — `agy --conversation
 <id>`, `claude --resume <id>`, `codex resume <id>` — to open the full
 session in that CLI.
 
 Under the hood, every headless role is launched detached
-(`crewbench_dispatch.py start`) and polled (`... wait`) rather than run in
+(`crewco_dispatch.py start`) and polled (`... wait`) rather than run in
 the foreground and blocked on — this avoids depending on your own CLI's
 shell-tool timeout or its background-job behavior, which vary by host. The
-Team Lead can also `crewbench_dispatch.py cancel` a run mid-flight.
+Team Lead can also `crewco_dispatch.py cancel` a run mid-flight.
 
 ### Usage and timing
 
@@ -359,7 +359,7 @@ Every run's envelope carries a `usage` field with whatever timing/token/
 cost data that CLI actually exposes — always wall-clock duration; tokens,
 cost, and turn count when the CLI reports them (`null` otherwise; a run
 never fails just because usage data is missing). The final report and
-`/crewbench:status` both end with one line per role and a total:
+`/crewco:status` both end with one line per role and a total:
 
 ```
 developer · agy gemini-3.8-flash · 2 runs · 6m12s
@@ -371,8 +371,8 @@ total: 3 runs · 7m52s
 
 A role CLI started from inside your own CLI's sandbox inherits it — it can
 end up with no network, no write access to its own config/auth directory, or
-blocked process spawning. `/crewbench:doctor` (or
-`crewbench_dispatch.py doctor --cli <cli>`) checks a CLI is installed,
+blocked process spawning. `/crewco:doctor` (or
+`crewco_dispatch.py doctor --cli <cli>`) checks a CLI is installed,
 reachable, and logged in *from your current host* before it's dispatched to,
 and the Team Lead runs it once per task for every non-host CLI in the
 lineup. See [`docs/compatibility.md`](docs/compatibility.md) for which
@@ -384,10 +384,10 @@ The full protocol is in [`lib/dispatch.md`](lib/dispatch.md).
 
 | Agent | Role | Tools |
 |---|---|---|
-| `crewbench-developer` | Implements the scoped task | Read, Write, Edit, Bash, Grep, Glob |
-| `crewbench-tester` | Verifies acceptance criteria, checks regressions | Read, Bash, Grep, Glob |
-| `crewbench-code-reviewer` | Read-only static review | Read, Grep, Glob |
-| `crewbench-ui-ux` | Design spec before implementation (opt-in) | Read, Write, Edit, Grep, Glob |
+| `crewco-developer` | Implements the scoped task | Read, Write, Edit, Bash, Grep, Glob |
+| `crewco-tester` | Verifies acceptance criteria, checks regressions | Read, Bash, Grep, Glob |
+| `crewco-code-reviewer` | Read-only static review | Read, Grep, Glob |
+| `crewco-ui-ux` | Design spec before implementation (opt-in) | Read, Write, Edit, Grep, Glob |
 
 Role briefs live in [`agents/`](agents/) and are shared by every CLI.
 
@@ -396,39 +396,39 @@ Role briefs live in [`agents/`](agents/) and are shared by every CLI.
 Both opt-in, off unless their precondition is actually met — never
 installed or written to without asking first:
 
-- **Jira ticket as input**: `/crewbench:new-task PROJ-123 [extra notes]`
+- **Jira ticket as input**: `/crewco:new-task PROJ-123 [extra notes]`
   — if the first argument looks like a Jira key and an Atlassian/Jira
   tool is available in your host CLI's session, the ticket's summary,
   description, acceptance criteria and subtasks become the task's scope,
   and the worktree/branch/commit message pick up the key. No such tool
-  found? You're asked to paste the ticket instead. crewbench never
+  found? You're asked to paste the ticket instead. crewco never
   writes back to Jira (no comments, no transitions) unless you
   explicitly ask it to.
 - **Visual verification**: when a task has a UI/UX spec (or clearly
   touches UI) and the project already has Playwright configured, the
   tester may write and run a Playwright check capturing a screenshot per
   state the spec lists, saved under
-  `.crewbench/tasks/<task-id>/screenshots/` and listed in the final
+  `.crewco/tasks/<task-id>/screenshots/` and listed in the final
   report. Playwright itself is never installed automatically.
 
 ## Upgrading from 2.x
 
-`.crewbench/team.json` keeps working exactly as before — nothing to
+`.crewco/team.json` keeps working exactly as before — nothing to
 change there. Two things did change:
 
-- **Run artifacts moved.** 2.x wrote everything to `.crewbench/runs/`;
-  3.x gives every task its own `.crewbench/tasks/<task-id>/runs/` folder
-  with a `state.json` (see `/crewbench:status`). Nothing reads the old
-  `.crewbench/runs/` path anymore — if you have scripts pointed at it,
+- **Run artifacts moved.** 2.x wrote everything to `.crewco/runs/`;
+  3.x gives every task its own `.crewco/tasks/<task-id>/runs/` folder
+  with a `state.json` (see `/crewco:status`). Nothing reads the old
+  `.crewco/runs/` path anymore — if you have scripts pointed at it,
   update them.
 - **`new-task` now isolates in a git worktree by default.** If you want
   the old "work directly in my checkout" behavior back, set
-  `"workspace": { "mode": "in-place" }` in `.crewbench/team.json` (or
+  `"workspace": { "mode": "in-place" }` in `.crewco/team.json` (or
   pass `--in-place` per task). `test`, `review` and `design` are
   unaffected — they always stayed in-place.
 
 Everything else (Jira input, the deterministic gate, usage reporting,
-`--yes`/flags, `/crewbench:profile`) is new and additive — you don't need
+`--yes`/flags, `/crewco:profile`) is new and additive — you don't need
 to configure anything to keep your old workflow working. See
 [`CHANGELOG.md`](CHANGELOG.md) for the full list.
 
@@ -442,7 +442,7 @@ to configure anything to keep your old workflow working. See
 | `skills/`, `agents/`, `lib/`, `config/`, `schemas/`, `bin/` | all |
 | `tests/`, `.github/workflows/`, `scripts/`, `docs/` | dev-only: pytest suite, CI, maintenance scripts, compatibility matrix, design docs — not needed at runtime |
 
-In a project using crewbench, `.crewbench/` holds `team.json`,
+In a project using crewco, `.crewco/` holds `team.json`,
 `project.json` and `project.md` (all committable), plus an
 auto-maintained `index.json` and per-task `tasks/<task-id>/` and (worktree
 mode) `wt/<task-id>/` — see [`lib/dispatch.md`](lib/dispatch.md) §0.

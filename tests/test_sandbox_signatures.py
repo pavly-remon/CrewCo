@@ -24,10 +24,10 @@ def test_dispatch_error_gets_sandbox_hint_prefix(dispatch, git_repo, fake_cli_di
     import subprocess
     import sys
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "fake_status_cli.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "fake_status_cli.py")
     env["FAKE_STATUS_FAIL"] = "getaddrinfo ENOTFOUND api.anthropic.com"
     proc = subprocess.run(
-        [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py"),
+        [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py"),
          "--role", "developer", "--cli", "claude", "--model", "m", "--effort", "none",
          "--handoff", str(handoff)],
         cwd=git_repo, env=env, capture_output=True, text=True, timeout=15,

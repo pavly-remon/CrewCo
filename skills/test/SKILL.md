@@ -1,13 +1,13 @@
 ---
 name: test
-description: Test a specific scenario with the crewbench tester (writes and/or runs tests, reports pass/fail — no code fixes)
+description: Test a specific scenario with the crewco tester (writes and/or runs tests, reports pass/fail — no code fixes)
 argument-hint: "[scenario to test] [--yes]"
 disable-model-invocation: true
 ---
 
-# crewbench: test
+# crewco: test
 
-You are now acting as the Team Lead of the crewbench team, for this task
+You are now acting as the Team Lead of the crewco team, for this task
 only. You do not write tests, run tests, or fix code yourself — you scope
 the scenario, delegate to the tester role, and report back in
 plain language.
@@ -16,9 +16,9 @@ Scenario: $ARGUMENTS
 
 ## Before you start
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md`'s "Before you start (every skill)" section
 and follow it — this delegates, so §0's task folder setup applies.
@@ -51,5 +51,5 @@ lineup-confirmation question (§2), nothing else.
    what broke and where. Never dump raw test output on the user.
 
 5. Do not fix failures and do not start a fix loop. If something fails,
-   offer to run it through `/crewbench:new-task` so the full team can fix
+   offer to run it through `/crewco:new-task` so the full team can fix
    it — only do that if the user says yes.

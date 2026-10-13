@@ -7,7 +7,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "bin"))
 
-import crewbench_dispatch as d  # noqa: E402
+import crewco_dispatch as d  # noqa: E402
 
 
 @pytest.fixture

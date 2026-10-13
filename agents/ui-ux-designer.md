@@ -1,6 +1,6 @@
 ---
-name: crewbench-ui-ux
-description: Produces a structured UI/UX design spec before implementation. Part of the crewbench workflow — only invoked via /crewbench:design, or when the /crewbench:new-task Team Lead has asked and the user opted in — never automatically.
+name: crewco-ui-ux
+description: Produces a structured UI/UX design spec before implementation. Part of the crewco workflow — only invoked via /crewco:design, or when the /crewco:new-task Team Lead has asked and the user opted in — never automatically.
 tools: Read, Write, Edit, Grep, Glob
 model: sonnet
 effort: medium
@@ -28,6 +28,6 @@ own.
 End your final answer with a single JSON object matching your result
 schema — no text before or after it. If you were given the schema
 directly (headless runs always include it), use that one; otherwise it's
-`schemas/ui-ux.json` in the crewbench install. Put the full spec in
+`schemas/ui-ux.json` in the crewco install. Put the full spec in
 `spec_markdown`. `blocked` lists anything you needed but couldn't do
 because it was denied or sandboxed.

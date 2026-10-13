@@ -8,15 +8,15 @@ import pytest
 
 
 def _dispatch_argv(dispatch):
-    return [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py")]
+    return [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py")]
 
 
 def test_start_then_wait_reports_done_envelope(dispatch, git_repo, fake_cli_dir):
     handoff = git_repo / "handoff.md"
     handoff.write_text("Task: anything\n")
-    task_dir = git_repo / ".crewbench" / "tasks" / "t1"
+    task_dir = git_repo / ".crewco" / "tasks" / "t1"
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
 
     start = subprocess.run(
         _dispatch_argv(dispatch) + ["start", "--role", "developer", "--cli", "claude",
@@ -48,9 +48,9 @@ def test_start_then_wait_reports_done_envelope(dispatch, git_repo, fake_cli_dir)
 def test_wait_times_out_without_all_runs_finishing(dispatch, git_repo, fake_cli_dir):
     handoff = git_repo / "handoff.md"
     handoff.write_text("Task: anything\n")
-    task_dir = git_repo / ".crewbench" / "tasks" / "t2"
+    task_dir = git_repo / ".crewco" / "tasks" / "t2"
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
     env["FAKE_CLI_SLEEP"] = "30"
 
     started = json.loads(subprocess.run(
@@ -83,9 +83,9 @@ def test_wait_times_out_without_all_runs_finishing(dispatch, git_repo, fake_cli_
 def test_cancel_kills_the_running_process_group(dispatch, git_repo, fake_cli_dir):
     handoff = git_repo / "handoff.md"
     handoff.write_text("Task: anything\n")
-    task_dir = git_repo / ".crewbench" / "tasks" / "t3"
+    task_dir = git_repo / ".crewco" / "tasks" / "t3"
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
     env["FAKE_CLI_SLEEP"] = "30"
 
     started = json.loads(subprocess.run(

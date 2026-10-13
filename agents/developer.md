@@ -1,6 +1,6 @@
 ---
-name: crewbench-developer
-description: Implements a scoped coding task against the existing project's conventions. Part of the crewbench workflow — only invoked via the /crewbench commands, not for standalone requests.
+name: crewco-developer
+description: Implements a scoped coding task against the existing project's conventions. Part of the crewco workflow — only invoked via the /crewco commands, not for standalone requests.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 effort: medium
@@ -41,7 +41,7 @@ When done, report back:
 End your final answer with a single JSON object matching your result
 schema — no text before or after it. If you were given the schema directly
 (headless runs always include it), use that one; otherwise it's
-`schemas/developer.json` in the crewbench install. The fields above (summary,
+`schemas/developer.json` in the crewco install. The fields above (summary,
 files changed, assumptions, questions) map directly onto that schema's
 properties; `blocked` lists anything you needed but couldn't do because it
 was denied or sandboxed.

@@ -91,15 +91,15 @@ def test_task_dir_and_round_name_run_artifacts(dispatch, git_repo, tmp_path, fak
     import subprocess
     import sys
 
-    task_dir = git_repo / ".crewbench" / "tasks" / "t1"
+    task_dir = git_repo / ".crewco" / "tasks" / "t1"
     handoff = tmp_path / "handoff.md"
     handoff.write_text("Task: trivial.\n")
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "hang_and_spawn.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "hang_and_spawn.py")
     env["FAKE_CLI_SLEEP"] = "0.1"  # exits fast, no structured output -> a clean parse-error failure
 
     proc = subprocess.run(
-        [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py"),
+        [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py"),
          "--role", "tester", "--cli", "claude", "--model", "m", "--effort", "none",
          "--handoff", str(handoff), "--task-dir", str(task_dir), "--round", "2",
          "--timeout", "10"],

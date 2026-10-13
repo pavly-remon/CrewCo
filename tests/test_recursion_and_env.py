@@ -5,20 +5,20 @@ import sys
 import pytest
 
 
-def test_dispatch_refuses_when_crewbench_role_already_set(dispatch, git_repo, tmp_path):
+def test_dispatch_refuses_when_crewco_role_already_set(dispatch, git_repo, tmp_path):
     handoff = git_repo / "handoff.md"
     handoff.write_text("Task: anything\n")
     env = dict(os.environ)
-    env["CREWBENCH_ROLE"] = "developer"
+    env["CREWCO_ROLE"] = "developer"
     proc = subprocess.run(
-        [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py"),
+        [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py"),
          "--role", "tester", "--cli", "claude", "--model", "m", "--effort", "none",
          "--handoff", str(handoff)],
         cwd=git_repo, env=env, capture_output=True, text=True, timeout=15,
     )
     assert proc.returncode != 0
     assert "refuses to run" in proc.stderr
-    assert "CREWBENCH_ROLE" in proc.stderr
+    assert "CREWCO_ROLE" in proc.stderr
 
 
 def test_child_env_strips_other_hosts_and_sets_recursion_guard(dispatch, monkeypatch):
@@ -32,13 +32,13 @@ def test_child_env_strips_other_hosts_and_sets_recursion_guard(dispatch, monkeyp
     assert "CLAUDE_CODE_SESSION_ID" not in env
     assert env["CODEX_HOME"] == "/should/be/stripped"  # codex's own vars are kept when cli == codex
     assert "COPILOT_MODEL" not in env  # copilot's markers stripped for a non-copilot child
-    assert env["CREWBENCH_ROLE"] == "developer"
-    assert env["CREWBENCH_TASK"] == "20260101-0000-demo"
+    assert env["CREWCO_ROLE"] == "developer"
+    assert env["CREWCO_TASK"] == "20260101-0000-demo"
 
     env2 = dispatch.child_env("copilot", "tester", None)
     assert env2["COPILOT_MODEL"] == "should-be-kept-for-copilot"
     assert "CODEX_HOME" not in env2
-    assert env2["CREWBENCH_TASK"] == ""
+    assert env2["CREWCO_TASK"] == ""
 
 
 HOST_MARKERS = {
@@ -72,5 +72,5 @@ def test_child_env_matrix_never_leaks_a_different_hosts_markers(dispatch, monkey
     if host == role_cli:
         for key, value in HOST_MARKERS[host].items():
             assert env[key] == value
-    assert env["CREWBENCH_ROLE"] == "developer"
-    assert env["CREWBENCH_TASK"] == "task-1"
+    assert env["CREWCO_ROLE"] == "developer"
+    assert env["CREWCO_TASK"] == "task-1"

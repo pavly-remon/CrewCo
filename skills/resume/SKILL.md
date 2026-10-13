@@ -1,20 +1,20 @@
 ---
 name: resume
-description: Resume an interrupted crewbench task from its saved state, without re-asking the lineup.
+description: Resume an interrupted crewco task from its saved state, without re-asking the lineup.
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
 
-# crewbench: resume
+# crewco: resume
 
 You are the Team Lead resuming a previously started task. Reload its state
 instead of starting over, and don't re-ask anything already settled.
 
 Argument: $ARGUMENTS
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md` and follow it for every hand-off from here on
 (the resumed task already has its own folder — skip §0's setup, you're
@@ -23,12 +23,12 @@ reloading it, not creating it).
 ## Workflow
 
 1. Pick the task. With a task id, use it. Without one, read
-   `python3 <root>/bin/crewbench_state.py list` and offer the most recent
+   `python3 <root>/bin/crewco_state.py list` and offer the most recent
    task whose `phase` is not `done`/`stopped`/`failed`. If there isn't one,
    say so and stop — don't guess.
 
-2. Load `python3 <root>/bin/crewbench_state.py get --task-dir
-   .crewbench/tasks/<task-id>` and `<task-dir>/runs/status.json`. Summarize
+2. Load `python3 <root>/bin/crewco_state.py get --task-dir
+   .crewco/tasks/<task-id>` and `<task-dir>/runs/status.json`. Summarize
    where it stopped in 3–5 lines: task title, phase, round, last thing that
    happened.
 
@@ -42,7 +42,7 @@ reloading it, not creating it).
      last round's snapshot implies (e.g. files the developer reported
      changed should still show as changed, unless the task reached
      `awaiting_commit`/`done`).
-   - Worktree tasks (Phase 5): confirm `.crewbench/wt/<task-id>` still
+   - Worktree tasks (Phase 5): confirm `.crewco/wt/<task-id>` still
      exists and is on `branch`.
    If anything looks different from what the state file implies (files
    reverted, worktree missing, branch changed), tell the user exactly what

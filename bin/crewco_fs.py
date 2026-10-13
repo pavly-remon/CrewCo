@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Shared file-locking helpers for the `.crewbench/` on-disk contract.
+"""Shared file-locking helpers for the `.crewco/` on-disk contract.
 
-Both crewbench_state.py (state.json/index.json) and crewbench_dispatch.py
+Both crewco_state.py (state.json/index.json) and crewco_dispatch.py
 (status.json) need the same exclusive-lock-around-read-modify-write pattern
 so concurrent writers (e.g. a tester run and a reviewer run finishing at
 the same time) never lose an update. This module is the single place that
@@ -16,16 +16,16 @@ SCHEMA_VERSION = 1
 
 def now_iso():
     """UTC ISO-8601 with an explicit offset, e.g. "2026-09-18T14:03:22Z".
-    Every structured timestamp written anywhere in `.crewbench/` uses this
+    Every structured timestamp written anywhere in `.crewco/` uses this
     (human-facing log-line prefixes may keep a short local-time format
-    instead -- see crewbench_dispatch.py's now())."""
+    instead -- see crewco_dispatch.py's now())."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def parse_legacy_or_utc(ts):
     """Parse a timestamp written by either this UTC format or the old naive
     local-time one ("%Y-%m-%dT%H:%M:%S", no offset) that earlier versions of
-    crewbench_state.py/crewbench_dispatch.py wrote. Returns a comparable,
+    crewco_state.py/crewco_dispatch.py wrote. Returns a comparable,
     timezone-aware datetime, treating a naive value as local time. Returns
     None for anything unparseable (missing/malformed field) rather than
     raising -- callers should treat that as "unknown", not fail the read."""

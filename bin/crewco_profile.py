@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Detect a project's package manager, commands and conventions for
-`.crewbench/project.json`. Stdlib only. Never writes anything itself — the
-`/crewbench:profile` skill shows this proposal to the user and only saves it
+`.crewco/project.json`. Stdlib only. Never writes anything itself — the
+`/crewco:profile` skill shows this proposal to the user and only saves it
 on confirmation (see lib/dispatch.md and schemas/project.json).
 
 Usage:
-  python3 <root>/bin/crewbench_profile.py detect [--cwd <dir>]
+  python3 <root>/bin/crewco_profile.py detect [--cwd <dir>]
       -> prints the proposed project.json as JSON
 
-  python3 <root>/bin/crewbench_profile.py agy-rules --commands <json>
+  python3 <root>/bin/crewco_profile.py agy-rules --commands <json>
       -> prints suggested `command(...)` agy allow rules for the given
-         {name: command} map (see agy_command_rules() in crewbench_dispatch.py
+         {name: command} map (see agy_command_rules() in crewco_dispatch.py
          for the matching semantics these rules must satisfy)
 """
 import argparse
@@ -189,7 +189,7 @@ def detect(root):
 def agy_rules_for_commands(commands):
     """Suggested agy `command(...)` allow rules for a {name: command} map,
     using agy's real matching semantics (word-by-word prefix, see
-    agy_command_rules() in crewbench_dispatch.py): each rule is the
+    agy_command_rules() in crewco_dispatch.py): each rule is the
     command's first two words (binary + subcommand) with no trailing `*`,
     since agy already treats a rule as a prefix."""
     rules = []

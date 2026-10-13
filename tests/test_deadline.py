@@ -17,14 +17,14 @@ def test_timeout_kills_whole_process_group_no_orphans(dispatch, git_repo, tmp_pa
     pid_file = tmp_path / "cli.pid"
     child_pid_file = tmp_path / "child.pid"
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "hang_and_spawn.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "hang_and_spawn.py")
     env["FAKE_CLI_PID_FILE"] = str(pid_file)
     env["FAKE_CLI_CHILD_PID_FILE"] = str(child_pid_file)
     env["FAKE_CLI_SLEEP"] = "30"
 
     start = time.time()
     proc = subprocess.run(
-        [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py"),
+        [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py"),
          "--role", "developer", "--cli", "claude", "--model", "m", "--effort", "none",
          "--handoff", str(handoff), "--timeout", "2"],
         cwd=git_repo, env=env, capture_output=True, text=True, timeout=30,

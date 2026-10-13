@@ -1,43 +1,43 @@
 #!/usr/bin/env python3
-"""Read/write a crewbench task's `state.json`, and keep `.crewbench/index.json`
+"""Read/write a crewco task's `state.json`, and keep `.crewco/index.json`
 in sync. Stdlib only. See lib/dispatch.md for the state.json field reference
 and schemas/task-state.json for its shape.
 
 Layout assumed: <root>/tasks/<task-id>/state.json, with the task-level index
-at <root>/index.json (`<root>` is normally `.crewbench`).
+at <root>/index.json (`<root>` is normally `.crewco`).
 
 Usage:
-  crewbench_state.py slug "task description"
+  crewco_state.py slug "task description"
       -> prints a task id: YYYYMMDD-HHMM-<up-to-5-word-kebab-slug>-<4 hex>
          (the hex suffix only guards against two tasks started in the same
          minute with a similar description; older ids without it still
          work everywhere else in this script)
 
-  crewbench_state.py new --task-dir <dir> --id <id> --command <cmd> --title <title>
+  crewco_state.py new --task-dir <dir> --id <id> --command <cmd> --title <title>
                           [--base-commit <sha>] [--branch <name>]
                           [--design-spec-file <path>] [--jira-key <key>]
       -> creates state.json with the initial fields (phase: scoping)
 
-  crewbench_state.py get --task-dir <dir> [--key <dotted.key>]
+  crewco_state.py get --task-dir <dir> [--key <dotted.key>]
       -> prints the whole state (or just the value at --key) as JSON
 
-  crewbench_state.py set --task-dir <dir> --key <dotted.key> --value <json>
+  crewco_state.py set --task-dir <dir> --key <dotted.key> --value <json>
       -> sets a (possibly nested) field; creates intermediate dicts as needed
 
-  crewbench_state.py append --task-dir <dir> --key <dotted.key> --value <json>
+  crewco_state.py append --task-dir <dir> --key <dotted.key> --value <json>
       -> appends to a list field, creating it if missing
 
-  crewbench_state.py list [--root <dir>]
-      -> prints .crewbench/index.json (default root: ./.crewbench), newest first
+  crewco_state.py list [--root <dir>]
+      -> prints .crewco/index.json (default root: ./.crewco), newest first
 
-  crewbench_state.py cleanup-candidates [--root <dir>] [--older-than-days N]
+  crewco_state.py cleanup-candidates [--root <dir>] [--older-than-days N]
       -> prints finished tasks (phase in done/stopped/failed) whose
          updated_at is older than N days (default 30) as a JSON list,
          newest first -- listing only, never deletes anything (mirrors
-         `/crewbench:status --cleanup`'s own worktree-candidate listing,
+         `/crewco:status --cleanup`'s own worktree-candidate listing,
          `skills/status/SKILL.md`)
 
-  crewbench_state.py delete --task-dir <dir>
+  crewco_state.py delete --task-dir <dir>
       -> deletes a task's entire directory and its index.json entry.
          Refuses (exit 1, no change) unless the task's own on-disk phase
          is done/stopped/failed -- this command never deletes an
@@ -56,7 +56,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from crewbench_fs import (  # noqa: E402
+from crewco_fs import (  # noqa: E402
     SCHEMA_VERSION, append_event, atomic_write_json, locked_read_modify_write, now_iso,
     parse_legacy_or_utc, read_json_or_default,
 )
@@ -94,7 +94,7 @@ def _state_lock_path(task_dir):
 
 
 def _index_lock_path(task_dir):
-    # One lock file per .crewbench root, shared by every task under it —
+    # One lock file per .crewco root, shared by every task under it —
     # index.json itself is shared, unlike state.json which is per-task.
     return _index_path(task_dir).parent / ".index.json.lock"
 
@@ -277,7 +277,7 @@ FINISHED_PHASES = ("done", "stopped", "failed")
 
 def cmd_cleanup_candidates(args):
     """Listing only -- never deletes or touches anything. Mirrors
-    `/crewbench:status --cleanup`'s own worktree-candidate listing
+    `/crewco:status --cleanup`'s own worktree-candidate listing
     (skills/status/SKILL.md): the skill using this shows the list and asks
     per task before ever calling `delete` below."""
     index_path = Path(args.root) / "index.json"
@@ -392,11 +392,11 @@ def main():
     s.set_defaults(func=cmd_append)
 
     s = sub.add_parser("list")
-    s.add_argument("--root", default=".crewbench")
+    s.add_argument("--root", default=".crewco")
     s.set_defaults(func=cmd_list)
 
     s = sub.add_parser("cleanup-candidates")
-    s.add_argument("--root", default=".crewbench")
+    s.add_argument("--root", default=".crewco")
     s.add_argument("--older-than-days", type=int, default=30)
     s.set_defaults(func=cmd_cleanup_candidates)
 

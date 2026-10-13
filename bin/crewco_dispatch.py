@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Run one crewbench role on a headless CLI and return a JSON result envelope.
+"""Run one crewco role on a headless CLI and return a JSON result envelope.
 
 Usage:
-  python3 <root>/bin/crewbench_dispatch.py --role developer --cli agy \
+  python3 <root>/bin/crewco_dispatch.py --role developer --cli agy \
       --model gemini-3.8-flash --effort medium --round 1 \
-      --task-dir .crewbench/tasks/<task-id> --handoff <path-to-hand-off.md>
+      --task-dir .crewco/tasks/<task-id> --handoff <path-to-hand-off.md>
 
 With --task-dir, run artifacts (log, prompt, result, raw output) are named
 <task-dir>/runs/<role>-r<round>.*, so the round is always in the filename.
@@ -47,8 +47,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from crewbench_env import CONFIG_DIRS, cli_argv_prefix  # noqa: E402
-from crewbench_fs import (  # noqa: E402
+from crewco_env import CONFIG_DIRS, cli_argv_prefix  # noqa: E402
+from crewco_fs import (  # noqa: E402
     SCHEMA_VERSION, _lock_file, _unlock_file, append_event, now_iso, read_json_or_default,
 )
 
@@ -90,7 +90,7 @@ GRACEFUL_KILL_TIMEOUT = 10  # seconds between SIGTERM and SIGKILL for a run's pr
 # host-identity markers that could change its behavior (e.g. a nested claude
 # thinking it's still the outer Claude Code session). Confirmed: CLAUDECODE=1
 # and CLAUDE_CODE_* are present in this script's own environment when it runs
-# under Claude Code. Never touches CREWBENCH_* -- those are what this script
+# under Claude Code. Never touches CREWCO_* -- those are what this script
 # itself sets for the child below.
 HOST_ENV_PREFIXES = {
     "claude": ("CLAUDECODE", "CLAUDE_CODE_", "CLAUDE_PLUGIN_ROOT", "CLAUDE_EFFORT", "AI_AGENT"),
@@ -103,7 +103,7 @@ HOST_ENV_PREFIXES = {
 def child_env(cli, role, task_id):
     """Environment for the launched child CLI process: strips other hosts'
     identity markers and sets the recursion guard the child's own
-    crewbench_dispatch.py (if it has crewbench installed too) checks below."""
+    crewco_dispatch.py (if it has crewco installed too) checks below."""
     env = dict(os.environ)
     for host, prefixes in HOST_ENV_PREFIXES.items():
         if host == cli:
@@ -111,8 +111,8 @@ def child_env(cli, role, task_id):
         for key in list(env):
             if key.startswith(prefixes):
                 del env[key]
-    env["CREWBENCH_ROLE"] = role
-    env["CREWBENCH_TASK"] = task_id or ""
+    env["CREWCO_ROLE"] = role
+    env["CREWCO_TASK"] = task_id or ""
     return env
 
 # Heuristic for "this looks like a test file", used to flag a tester role editing
@@ -128,10 +128,10 @@ def is_test_path(path, extra_pattern=None):
 
 
 def resolve_cli_path(cli):
-    """The executable to run for `cli`: CREWBENCH_CLI_OVERRIDE_<CLI> if set
+    """The executable to run for `cli`: CREWCO_CLI_OVERRIDE_<CLI> if set
     (for tests — inject a fake CLI script without touching the production
     path), otherwise whatever's on PATH."""
-    override = os.environ.get(f"CREWBENCH_CLI_OVERRIDE_{cli.upper()}")
+    override = os.environ.get(f"CREWCO_CLI_OVERRIDE_{cli.upper()}")
     return override or shutil.which(cli)
 
 
@@ -204,7 +204,7 @@ def build_prompt(role, cli, handoff, schema, skip=False):
         "## Limits\n\n" + limits_for(role, cli, skip),
         "## Hand-off from the Team Lead\n\n" + handoff.strip(),
         "## Running non-interactively\n\n"
-        "You are running non-interactively as part of a crewbench team. Don't ask "
+        "You are running non-interactively as part of a crewco team. Don't ask "
         "questions; put ambiguities in your result. If an action you need is denied "
         "or blocked by the sandbox, don't try to work around it — list it under "
         "\"blocked\" and continue with what you can do. Your brief's \"Report format\" "
@@ -945,11 +945,11 @@ NETWORK_CHECK_HOSTS = {
 
 
 def _network_check_target(cli):
-    """NETWORK_CHECK_HOSTS[cli], unless CREWBENCH_NETWORK_CHECK_OVERRIDE_<CLI>
+    """NETWORK_CHECK_HOSTS[cli], unless CREWCO_NETWORK_CHECK_OVERRIDE_<CLI>
     (e.g. "127.0.0.1:54321") is set — for tests, to check the real
     reachable/unreachable logic without depending on live internet access;
     the production path is unchanged when unset."""
-    override = os.environ.get(f"CREWBENCH_NETWORK_CHECK_OVERRIDE_{cli.upper()}")
+    override = os.environ.get(f"CREWCO_NETWORK_CHECK_OVERRIDE_{cli.upper()}")
     if override and ":" in override:
         host, port = override.rsplit(":", 1)
         return host, int(port)
@@ -1026,11 +1026,11 @@ def _dir_writable(path):
 
 
 def cmd_doctor(argv):
-    """`crewbench_dispatch.py doctor --cli <cli> [--cwd <dir>]` — preflight
+    """`crewco_dispatch.py doctor --cli <cli> [--cwd <dir>]` — preflight
     for delegating to <cli> from inside a (possibly sandboxed) host: is it
     installed, is its config dir writable, can it reach its API, is it
     logged in. Prints a JSON report and exits 0 only if every check passed."""
-    p = argparse.ArgumentParser(prog="crewbench_dispatch.py doctor")
+    p = argparse.ArgumentParser(prog="crewco_dispatch.py doctor")
     p.add_argument("--cli", required=True, choices=["claude", "agy", "codex", "copilot"])
     p.add_argument("--cwd", default=None)
     args = p.parse_args(argv)
@@ -1085,7 +1085,7 @@ def _read_status(runs_dir):
 
 
 def cmd_start(argv):
-    """`crewbench_dispatch.py start <the same flags as the foreground form>`
+    """`crewco_dispatch.py start <the same flags as the foreground form>`
     — launches the run fully detached and returns immediately. The detached
     process is just another `main()` invocation (same code path, so results
     land in exactly the same files); only the launch itself differs."""
@@ -1113,12 +1113,12 @@ def cmd_start(argv):
 
 
 def cmd_wait(argv):
-    """`crewbench_dispatch.py wait --task-dir <dir> --run <run> [--run <run2>] --max-seconds <n>`
+    """`crewco_dispatch.py wait --task-dir <dir> --run <run> [--run <run2>] --max-seconds <n>`
     — blocks (below the smallest host shell-tool timeout you've found for
     your host) then reports each named run's current status.json entry, plus
     its full envelope for any that already finished. Call repeatedly until
     every run is done/failed."""
-    p = argparse.ArgumentParser(prog="crewbench_dispatch.py wait")
+    p = argparse.ArgumentParser(prog="crewco_dispatch.py wait")
     p.add_argument("--task-dir", required=True)
     p.add_argument("--run", action="append", dest="runs", required=True)
     p.add_argument("--max-seconds", type=float, default=240)
@@ -1149,10 +1149,10 @@ def cmd_wait(argv):
 
 
 def cmd_cancel(argv):
-    """`crewbench_dispatch.py cancel --task-dir <dir> --run <run>` — kills
+    """`crewco_dispatch.py cancel --task-dir <dir> --run <run>` — kills
     that run's process group (both the CLI child and, if `start` launched it,
     the launcher) and marks it `failed` in status.json."""
-    p = argparse.ArgumentParser(prog="crewbench_dispatch.py cancel")
+    p = argparse.ArgumentParser(prog="crewco_dispatch.py cancel")
     p.add_argument("--task-dir", required=True)
     p.add_argument("--run", required=True)
     args = p.parse_args(argv)
@@ -1176,7 +1176,7 @@ def build_arg_parser():
     p.add_argument("--effort", default="medium", help='low|medium|high|xhigh|max, or "none" to omit')
     p.add_argument("--handoff", required=True, help="file with the task hand-off")
     p.add_argument("--task-dir", default=None,
-                   help=".crewbench/tasks/<task-id> — if given, run artifacts go under "
+                   help=".crewco/tasks/<task-id> — if given, run artifacts go under "
                         "<task-dir>/runs/<role>-r<round>.* instead of next to --handoff")
     p.add_argument("--round", type=int, default=1, help="fix-loop round number (only used with --task-dir)")
     p.add_argument("--timeout", type=int, default=1800, help="seconds (default 1800)")
@@ -1207,12 +1207,12 @@ def resolve_run_paths(args):
 
 
 def main(argv=None):
-    if os.environ.get("CREWBENCH_ROLE"):
+    if os.environ.get("CREWCO_ROLE"):
         raise SystemExit(
-            "crewbench_dispatch.py refuses to run: CREWBENCH_ROLE="
-            f"{os.environ['CREWBENCH_ROLE']!r} is already set in this process's environment, "
+            "crewco_dispatch.py refuses to run: CREWCO_ROLE="
+            f"{os.environ['CREWCO_ROLE']!r} is already set in this process's environment, "
             "meaning this is itself a crew role's child process. A crew member must never "
-            "dispatch another crew or invoke crewbench skills — only the Team Lead does that.")
+            "dispatch another crew or invoke crewco skills — only the Team Lead does that.")
     args = build_arg_parser().parse_args(argv)
     args.cwd = os.path.abspath(args.cwd) if args.cwd else os.getcwd()
 
@@ -1377,7 +1377,7 @@ def main(argv=None):
             append_event(task_dir_path, "run.started",
                          {"role": args.role, "cli": args.cli, "model": args.model, "effort": args.effort},
                          run=run)
-        print(f"crewbench: {run} running on {args.cli} — live log: tail -f {log_path}",
+        print(f"crewco: {run} running on {args.cli} — live log: tail -f {log_path}",
               file=sys.stderr, flush=True)
         start = time.time()
         git_before = git_state(args.cwd)

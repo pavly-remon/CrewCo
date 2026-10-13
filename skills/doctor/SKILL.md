@@ -5,31 +5,31 @@ argument-hint: ""
 disable-model-invocation: true
 ---
 
-# crewbench: doctor
+# crewco: doctor
 
 You check the crew's CLIs, not the task itself. You never delegate to a
 role or change any file — this only reads and reports.
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 
 ## Workflow
 
-1. Detect the host: `python3 <root>/bin/crewbench_env.py whoami`. If `host`
+1. Detect the host: `python3 <root>/bin/crewco_env.py whoami`. If `host`
    comes back `"unknown"`, ask the user once which CLI they're running
-   crewbench from.
+   crewco from.
 
-2. Build the current lineup the same way `/crewbench:team` does (defaults
-   merged with `.crewbench/team.json`) so you know which CLIs are actually
+2. Build the current lineup the same way `/crewco:team` does (defaults
+   merged with `.crewco/team.json`) so you know which CLIs are actually
    in use. If no lineup has been set up yet, check all four (`claude`,
    `codex`, `agy`, `copilot`).
 
 3. For each CLI in the lineup that is **not** the detected host, run:
 
    ```
-   python3 <root>/bin/crewbench_dispatch.py doctor --cli <cli>
+   python3 <root>/bin/crewco_dispatch.py doctor --cli <cli>
    ```
 
    For the host's own CLI, a `doctor` check is still useful (confirms it's

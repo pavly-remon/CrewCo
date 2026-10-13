@@ -1,5 +1,5 @@
-"""Concurrency tests for the shared lock helpers in crewbench_fs.py, proving
-that concurrent crewbench_state.py `set`/`append` calls against the same
+"""Concurrency tests for the shared lock helpers in crewco_fs.py, proving
+that concurrent crewco_state.py `set`/`append` calls against the same
 task never lose an update to state.json or index.json."""
 import importlib
 import json
@@ -9,14 +9,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
-crewbench_state = importlib.import_module("crewbench_state")
+crewco_state = importlib.import_module("crewco_state")
 
 N = 12
 
 
 def run_state(*args, cwd):
     result = subprocess.run(
-        [sys.executable, str(Path(crewbench_state.__file__)), *args],
+        [sys.executable, str(Path(crewco_state.__file__)), *args],
         cwd=cwd, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -24,7 +24,7 @@ def run_state(*args, cwd):
 
 
 def test_concurrent_set_calls_lose_no_update(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "concurrent-set"
+    task_dir = tmp_path / ".crewco" / "tasks" / "concurrent-set"
     run_state("new", "--task-dir", str(task_dir), "--id", "concurrent-set",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
 
@@ -41,7 +41,7 @@ def test_concurrent_set_calls_lose_no_update(tmp_path):
 
 
 def test_concurrent_append_calls_lose_no_update(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "concurrent-append"
+    task_dir = tmp_path / ".crewco" / "tasks" / "concurrent-append"
     run_state("new", "--task-dir", str(task_dir), "--id", "concurrent-append",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
 
@@ -58,7 +58,7 @@ def test_concurrent_append_calls_lose_no_update(tmp_path):
 
 
 def test_concurrent_writes_to_different_tasks_all_land_in_index(tmp_path):
-    root = tmp_path / ".crewbench"
+    root = tmp_path / ".crewco"
 
     def new_task(i):
         task_id = f"task-{i}"

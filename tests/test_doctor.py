@@ -29,7 +29,7 @@ def _run_doctor(dispatch, cli, env_extra, cwd):
     env = dict(os.environ)
     env.update(env_extra)
     proc = subprocess.run(
-        [sys.executable, str(dispatch.ROOT / "bin" / "crewbench_dispatch.py"),
+        [sys.executable, str(dispatch.ROOT / "bin" / "crewco_dispatch.py"),
          "doctor", "--cli", cli],
         cwd=cwd, env=env, capture_output=True, text=True, timeout=30,
     )
@@ -40,8 +40,8 @@ def test_doctor_reports_ok_when_everything_checks_out(dispatch, tmp_path, fake_c
     srv, port = _listener()
     try:
         env = {
-            "CREWBENCH_CLI_OVERRIDE_CLAUDE": str(fake_cli_dir / "fake_status_cli.py"),
-            "CREWBENCH_NETWORK_CHECK_OVERRIDE_CLAUDE": f"127.0.0.1:{port}",
+            "CREWCO_CLI_OVERRIDE_CLAUDE": str(fake_cli_dir / "fake_status_cli.py"),
+            "CREWCO_NETWORK_CHECK_OVERRIDE_CLAUDE": f"127.0.0.1:{port}",
         }
         proc, report = _run_doctor(dispatch, "claude", env, tmp_path)
         assert proc.returncode == 0
@@ -55,7 +55,7 @@ def test_doctor_reports_ok_when_everything_checks_out(dispatch, tmp_path, fake_c
 
 
 def test_doctor_reports_not_installed(dispatch, tmp_path):
-    env = {"CREWBENCH_CLI_OVERRIDE_CODEX": ""}  # falls through to PATH lookup
+    env = {"CREWCO_CLI_OVERRIDE_CODEX": ""}  # falls through to PATH lookup
     env["PATH"] = "/nonexistent"
     proc, report = _run_doctor(dispatch, "codex", env, tmp_path)
     assert proc.returncode == 1
@@ -66,9 +66,9 @@ def test_doctor_reports_not_installed(dispatch, tmp_path):
 
 def test_doctor_flags_unreachable_network(dispatch, tmp_path, fake_cli_dir):
     env = {
-        "CREWBENCH_CLI_OVERRIDE_AGY": str(fake_cli_dir / "fake_status_cli.py"),
+        "CREWCO_CLI_OVERRIDE_AGY": str(fake_cli_dir / "fake_status_cli.py"),
         # nothing listening on this port
-        "CREWBENCH_NETWORK_CHECK_OVERRIDE_AGY": "127.0.0.1:1",
+        "CREWCO_NETWORK_CHECK_OVERRIDE_AGY": "127.0.0.1:1",
     }
     proc, report = _run_doctor(dispatch, "agy", env, tmp_path)
     assert proc.returncode == 1
@@ -81,8 +81,8 @@ def test_doctor_flags_not_logged_in(dispatch, tmp_path, fake_cli_dir):
     srv, port = _listener()
     try:
         env = {
-            "CREWBENCH_CLI_OVERRIDE_CODEX": str(fake_cli_dir / "fake_status_cli.py"),
-            "CREWBENCH_NETWORK_CHECK_OVERRIDE_CODEX": f"127.0.0.1:{port}",
+            "CREWCO_CLI_OVERRIDE_CODEX": str(fake_cli_dir / "fake_status_cli.py"),
+            "CREWCO_NETWORK_CHECK_OVERRIDE_CODEX": f"127.0.0.1:{port}",
             "FAKE_STATUS_FAIL": "not logged in",
         }
         proc, report = _run_doctor(dispatch, "codex", env, tmp_path)

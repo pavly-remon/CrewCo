@@ -2,13 +2,13 @@
 """Run deterministic project checks before the LLM tester (Phase 7.2 gate).
 
 Usage:
-  python3 <root>/bin/crewbench_gate.py --cwd <worktree-or-project-root> \
-      --task-dir .crewbench/tasks/<task-id> --round <n> \
+  python3 <root>/bin/crewco_gate.py --cwd <worktree-or-project-root> \
+      --task-dir .crewco/tasks/<task-id> --round <n> \
       [--project-json <path>] [--timeout <seconds-per-step>]
 
 Runs, in order, whichever of format_check / lint / typecheck / test_changed
 (falling back to test) has a non-null command in project.json's "commands"
-(default: <cwd>/.crewbench/project.json — the committed profile, so it's
+(default: <cwd>/.crewco/project.json — the committed profile, so it's
 already present in a worktree checked out from a commit where it exists).
 Any step with no configured command is skipped entirely. Stops at the first
 failing step (its output is usually what the next step would fail on too,
@@ -16,8 +16,8 @@ and the developer only needs one fix list per round) rather than running
 every step regardless.
 
 Each step gets its own process group and a timeout (default 600s / 10 min):
-on timeout it is killed the same way crewbench_dispatch.py kills a timed-out
-role (SIGTERM, then SIGKILL after crewbench_dispatch.GRACEFUL_KILL_TIMEOUT
+on timeout it is killed the same way crewco_dispatch.py kills a timed-out
+role (SIGTERM, then SIGKILL after crewco_dispatch.GRACEFUL_KILL_TIMEOUT
 seconds if it hasn't exited). Output is captured to
 <task-dir>/runs/gate-r<n>.log; a JSON summary goes to
 <task-dir>/runs/gate-r<n>.result.json and stdout:
@@ -39,8 +39,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from crewbench_dispatch import _terminate_pid_group, _hard_kill_pid_group, GRACEFUL_KILL_TIMEOUT  # noqa: E402
-from crewbench_fs import append_event  # noqa: E402
+from crewco_dispatch import _terminate_pid_group, _hard_kill_pid_group, GRACEFUL_KILL_TIMEOUT  # noqa: E402
+from crewco_fs import append_event  # noqa: E402
 
 MAX_TAIL_LINES = 200
 DEFAULT_TIMEOUT = 600
@@ -88,7 +88,7 @@ def _split(command):
     # shell semantics subprocess.Popen(shell=False) doesn't provide; not
     # exercised on a real Windows machine, same precedent as other
     # POSIX-first, Windows-best-effort code in this repo (e.g. the lock
-    # helper in crewbench_fs.py's _lock_file/_unlock_file).
+    # helper in crewco_fs.py's _lock_file/_unlock_file).
     tokens = shlex.split(command, posix=False)
     return [t[1:-1] if len(t) >= 2 and t[0] == t[-1] and t[0] in ('"', "'") else t
             for t in tokens]
@@ -161,12 +161,12 @@ def main(argv=None):
     p.add_argument("--task-dir", required=True)
     p.add_argument("--round", type=int, required=True)
     p.add_argument("--project-json", default=None,
-                   help="default: <cwd>/.crewbench/project.json")
+                   help="default: <cwd>/.crewco/project.json")
     p.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT, help="seconds per step (default 600)")
     args = p.parse_args(argv)
 
     cwd = os.path.abspath(args.cwd)
-    project_json_path = args.project_json or os.path.join(cwd, ".crewbench", "project.json")
+    project_json_path = args.project_json or os.path.join(cwd, ".crewco", "project.json")
     result, log_path, result_path = run_gate(cwd, args.task_dir, args.round, project_json_path, args.timeout)
     print(json.dumps(result, indent=2))
     sys.exit(0 if result["ok"] else 1)

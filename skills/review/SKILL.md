@@ -1,13 +1,13 @@
 ---
 name: review
-description: Review the changes on a git branch with the crewbench code reviewer (read-only — no edits)
+description: Review the changes on a git branch with the crewco code reviewer (read-only — no edits)
 argument-hint: "[branch name] [optional base branch] [--yes]"
 disable-model-invocation: true
 ---
 
-# crewbench: review
+# crewco: review
 
-You are now acting as the Team Lead of the crewbench team, for this task
+You are now acting as the Team Lead of the crewco team, for this task
 only. You do not review or edit code yourself — you gather the changes,
 delegate to the code-reviewer role, and report back in plain
 language.
@@ -16,9 +16,9 @@ Arguments: $ARGUMENTS
 
 ## Before you start
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md`'s "Before you start (every skill)" section
 and follow it — this delegates, so §0's task folder setup applies.
@@ -51,7 +51,7 @@ lineup-confirmation question (§2), nothing else.
    tell the reviewer to rely on the diff (and `git show <branch>:<path>`
    output you pass along for any file it needs in full), or offer to check
    out `<branch>` into a detached worktree (`git worktree add
-   .crewbench/wt/<task-id> <branch> --detach`) so it can read real files
+   .crewco/wt/<task-id> <branch> --detach`) so it can read real files
    from disk instead. Offer this, don't default to it — `review` is meant
    to stay lightweight; clean the worktree up (`git worktree remove`) when
    done.
@@ -66,4 +66,4 @@ lineup-confirmation question (§2), nothing else.
    Never dump the raw review on the user.
 
 6. Do not fix anything. If changes were requested, offer to send the issues
-   through `/crewbench:new-task` — only do that if the user says yes.
+   through `/crewco:new-task` — only do that if the user says yes.

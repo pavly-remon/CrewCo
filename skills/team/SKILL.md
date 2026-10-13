@@ -1,20 +1,20 @@
 ---
 name: team
-description: Show or change the crewbench team lineup — which CLI, model and effort each role (developer, tester, code-reviewer, ui-ux) uses
+description: Show or change the crewco team lineup — which CLI, model and effort each role (developer, tester, code-reviewer, ui-ux) uses
 argument-hint: "[optional change, e.g. 'reviewer on codex, high effort']"
 disable-model-invocation: true
 ---
 
-# crewbench: team
+# crewco: team
 
-You are the Team Lead of the crewbench team. This skill only manages the
+You are the Team Lead of the crewco team. This skill only manages the
 team lineup — it never runs a task.
 
 Requested change: $ARGUMENTS
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md`'s §1 and §2 for the lineup format (this skill
 doesn't delegate, so the rest of its "Before you start (every skill)"
@@ -22,7 +22,7 @@ section doesn't apply here).
 
 ## Workflow
 
-1. Build the current lineup (defaults merged with `.crewbench/team.json`)
+1. Build the current lineup (defaults merged with `.crewco/team.json`)
    and show it as a table: role, CLI, model (tier and what it resolves to),
    effort. Also show the current `loop` settings (`max_rounds`,
    `fix_threshold`), `workspace` settings (`mode`, `setup`), and
@@ -48,10 +48,10 @@ section doesn't apply here).
    blockers", "work in-place, no worktrees".
 
    **Model name freshness:** for each resolved model, run `python3
-   <root>/bin/crewbench_env.py check-model --cli <cli> --model <model>`.
+   <root>/bin/crewco_env.py check-model --cli <cli> --model <model>`.
    When `checked` is `true` and `found` is `false`, tell the user the
    model isn't in that CLI's current list, show `closest`, and offer to
-   override `tiers.<cli>` in `.crewbench/team.json` with the closest match
+   override `tiers.<cli>` in `.crewco/team.json` with the closest match
    (only on yes). When `checked` is `false` (`claude`, `codex` and
    `copilot` — no model-listing command was found for any of the three as
    of writing, `agy models` is the only one that exists), skip silently;
@@ -62,7 +62,7 @@ section doesn't apply here).
    `safe` mode, so a headless Copilot tester can't run tests at all — it
    can only report what it would have run. Suggest `permissions: skip`,
    a different CLI for `tester`, or relying on the Phase 7 gate
-   (`.crewbench/project.json`'s commands) to actually run tests
+   (`.crewco/project.json`'s commands) to actually run tests
    deterministically instead.
 
    If the lineup mixes a native-route role (Claude Code or Copilot on
@@ -72,7 +72,7 @@ section doesn't apply here).
    best-effort (the role is told the worktree path, not confined to it).
 
    For any role whose CLI differs from the current host (run
-   `python3 <root>/bin/crewbench_env.py whoami` once to know `host`), check
+   `python3 <root>/bin/crewco_env.py whoami` once to know `host`), check
    `<root>/docs/compatibility.md` for that host x role-CLI cell. If it's
    marked `partial` or `unsupported`, say so plainly (with the cell's
    caveat) before showing the final table — don't silently accept it. This
@@ -80,6 +80,6 @@ section doesn't apply here).
    combination.
 
 3. Ask before writing. On yes, save only the fields that differ from
-   `<root>/config/defaults.json` into `.crewbench/team.json` (merge with
+   `<root>/config/defaults.json` into `.crewco/team.json` (merge with
    what's there; `loop`, `workspace` and `confirm_lineup` live alongside
    `roles` and `tiers`). "reset" means delete that file, after confirming.

@@ -3,7 +3,7 @@
 All files in this directory are **synthetic** — hand-written to match each
 CLI's documented/observed output shape, not captured from a real run. Where a
 field's exact name or nesting couldn't be confirmed against live output, the
-shape follows what `crewbench_dispatch.py`'s parsers already expect (see
+shape follows what `crewco_dispatch.py`'s parsers already expect (see
 `Stream._claude`, `Stream._agy`, and `parse_output`).
 
 - `claude_stream.jsonl` — a `claude --output-format stream-json` transcript:

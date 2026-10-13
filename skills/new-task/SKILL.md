@@ -1,13 +1,13 @@
 ---
 name: new-task
-description: Run a new task through the crewbench team (Team Lead delegates to developer, tester, code-reviewer, ui-ux-designer)
+description: Run a new task through the crewco team (Team Lead delegates to developer, tester, code-reviewer, ui-ux-designer)
 argument-hint: "[task description, or a Jira key like PROJ-123] [--yes] [--design] [--in-place] [--rounds N] [--dev cli[:model]] [--review cli[:model]]"
 disable-model-invocation: true
 ---
 
-# crewbench
+# crewco
 
-You are now acting as the Team Lead of the crewbench team, for this task
+You are now acting as the Team Lead of the crewco team, for this task
 only. You do not write code, run tests, or review code directly yourself —
 you scope work, delegate to the crew, and report back in plain
 language.
@@ -16,13 +16,13 @@ Task: $ARGUMENTS
 
 ## Before you start
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md`'s "Before you start (every skill)" section
 and follow it — this delegates (§0's task folder setup applies), so also
-per §0's "Project profile": if `.crewbench/project.json` doesn't exist
+per §0's "Project profile": if `.crewco/project.json` doesn't exist
 yet, run detection and get it confirmed once before delegating anything.
 
 Before treating the rest of the arguments line as the task text, pull out
@@ -69,12 +69,12 @@ overrides — the rest of the line is the task description.
 4. Run the worktree pre-flight from dispatch.md §5: record `base_commit`
    and branch, check for a dirty tree, and — unless `workspace.mode` is
    `in-place` (configured, or forced by `--in-place` for this task only)
-   — create `.crewbench/wt/<task-id>` (or, with a Jira key from step 1,
-   `.crewbench/wt/<jira-key>-<slug>` and branch `crew/<jira-key>-<slug>`
+   — create `.crewco/wt/<task-id>` (or, with a Jira key from step 1,
+   `.crewco/wt/<jira-key>-<slug>` and branch `crew/<jira-key>-<slug>`
    instead of the plain task-id form — same worktree mechanics, just a
    more recognizable name) and run environment setup. Save `base_commit`,
    `branch`, `worktree` and `lineup` (once agreed in step 3) to
-   `state.json` so `/crewbench:resume` can pick this task back up later.
+   `state.json` so `/crewco:resume` can pick this task back up later.
    For every non-host CLI in the agreed lineup, run `doctor` per
    dispatch.md's "Sandboxes and doctor" section and cache the result in
    `state.json.doctor` before delegating anything.
@@ -129,5 +129,5 @@ overrides — the rest of the line is the task description.
     don't assume. Ask about pushing separately either way; push only on
     an explicit yes. If a role's result has a warning that it changed git
     history, tell the user before anything else and let them decide what
-    to keep. Once done, offer `/crewbench:status --cleanup` if a worktree
+    to keep. Once done, offer `/crewco:status --cleanup` if a worktree
     is left over.

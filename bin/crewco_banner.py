@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Print the crewbench splash banner: a small pixel-art rendition of the
-crewbench mark (a rounded cream tile with a red chevron and a black "b")
+"""Print the crewco splash banner: a small pixel-art rendition of the
+crewco mark (a rounded cream tile with a red chevron and a black "b")
 next to the name, version and a one-line quickstart hint -- in the same
 style as Claude Code's own startup banner (icon left, text right).
 
-Every crewbench skill runs this as its first action (see the "Before you
+Every crewco skill runs this as its first action (see the "Before you
 start" line near the top of each SKILL.md), so it prints once per
-`/crewbench:*` invocation, not once per session.
+`/crewco:*` invocation, not once per session.
 
 Usage:
-  python3 <root>/bin/crewbench_banner.py
+  python3 <root>/bin/crewco_banner.py
 """
 import json
 import os
@@ -66,11 +66,11 @@ def main():
     reset = "\033[0m" if color else ""
 
     v = version()
-    title = f"{bold}CrewBench{reset}" + (f" {dim}v{v}{reset}" if v else "")
+    title = f"{bold}CrewCo{reset}" + (f" {dim}v{v}{reset}" if v else "")
     lines = {
         2: title,
         3: f"{dim}Team Lead + Developer, Tester, Code Reviewer, UI/UX Designer{reset}",
-        4: f"{dim}/crewbench:new-task to start · /crewbench:doctor to check setup{reset}",
+        4: f"{dim}/crewco:new-task to start · /crewco:doctor to check setup{reset}",
     }
 
     print()

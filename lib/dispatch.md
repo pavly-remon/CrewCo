@@ -1,19 +1,19 @@
-# crewbench: team lineup and dispatch protocol
+# crewco: team lineup and dispatch protocol
 
-Every crewbench skill follows this protocol whenever it hands work to a crew
+Every crewco skill follows this protocol whenever it hands work to a crew
 role (`developer`, `tester`, `code-reviewer`, `ui-ux`). It works the same
 whether the Team Lead is running in Claude Code, GitHub Copilot CLI,
 Antigravity CLI (`agy`), or Codex CLI.
 
-`<root>` below is the crewbench install directory (the one containing
+`<root>` below is the crewco install directory (the one containing
 `agents/`, `bin/`, `config/`, `lib/` and `schemas/`).
 
 ## Before you start (every skill)
 
-Every crewbench skill's own "Before you start" section should be just this,
+Every crewco skill's own "Before you start" section should be just this,
 plus whatever's specific to that one skill:
 
-> crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a
+> crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a
 > literal placeholder, the root is the directory two levels above this
 > SKILL.md. Read `<root>/lib/dispatch.md`'s "Before you start (every
 > skill)" section and follow it.
@@ -47,22 +47,22 @@ am I" — resolve it the same way every time:
   reading right now — every host that can invoke a skill at all gives you
   that file's own path in the process, so this always works; (3) as a last
   resort (e.g. you're reasoning about `<root>` before reading any skill,
-  which shouldn't normally happen), the crewbench plugin cache is at
-  `~/.claude/plugins/cache/*/crewbench/*` (Claude Code), `~/.codex/plugins/
-  cache/*/crewbench/*` (Codex), `~/.gemini/config/plugins/crewbench` (agy),
-  or `~/.copilot/installed-plugins/*/crewbench*` (Copilot — VERIFY, layout
+  which shouldn't normally happen), the crewco plugin cache is at
+  `~/.claude/plugins/cache/*/crewco/*` (Claude Code), `~/.codex/plugins/
+  cache/*/crewco/*` (Codex), `~/.gemini/config/plugins/crewco` (agy),
+  or `~/.copilot/installed-plugins/*/crewco*` (Copilot — VERIFY, layout
   inferred from `copilot plugin --help`, not confirmed against a real
   install).
-- **`host`** — run `python3 <root>/bin/crewbench_env.py whoami` once per
+- **`host`** — run `python3 <root>/bin/crewco_env.py whoami` once per
   task (cheap, no network). It prints `{"host": ..., "plugin_root": ...,
   "python": ..., "platform": ..., "config_dir": ...}`. `host` is `claude`
   when `CLAUDECODE=1` is set (confirmed live in Claude Code's own
   environment); otherwise it's read off your own process's ancestry looking
   for `codex`, `agy` or `copilot` (POSIX only — no reliable signal was found
   for any of the three on Windows, VERIFY). If it comes back `"unknown"`,
-  ask the user once which CLI they're running crewbench from and record the
+  ask the user once which CLI they're running crewco from and record the
   answer as `state.json.host_override` (§0) — reuse it silently for the rest
-  of the task and on `/crewbench:resume`, without asking again.
+  of the task and on `/crewco:resume`, without asking again.
 
 ## 0. Task folder and state
 
@@ -70,7 +70,7 @@ Every `new-task`, `test`, `review` and `design` invocation gets a task
 folder before anything else happens:
 
 ```
-.crewbench/
+.crewco/
   team.json            (unchanged, user-owned, committable)
   project.json         (Phase 7, committable)
   project.md           (Phase 7, committable)
@@ -81,30 +81,30 @@ folder before anything else happens:
   wt/<task-id>/        (Phase 5, worktrees — not created by in-place tasks)
 ```
 
-1. Compute the task id: `python3 <root>/bin/crewbench_state.py slug "<task
+1. Compute the task id: `python3 <root>/bin/crewco_state.py slug "<task
    text>"` → `YYYYMMDD-HHMM-<up-to-5-word-kebab-slug>-<4 hex>` (the hex
    suffix guards against two tasks started in the same minute with a
    similar description; older ids without it still work everywhere).
 2. Create the state file:
-   `python3 <root>/bin/crewbench_state.py new --task-dir
-   .crewbench/tasks/<task-id> --id <task-id> --command <new-task|test|review|design>
+   `python3 <root>/bin/crewco_state.py new --task-dir
+   .crewco/tasks/<task-id> --id <task-id> --command <new-task|test|review|design>
    --title "<short title>"` (add `--jira-key <key>` when `new-task`'s
    first argument matched a Jira key, per its own skill — see "Optional:
-   Jira as task input" below). This also upserts `.crewbench/index.json`.
-3. Ensure `.crewbench/tasks/` and `.crewbench/wt/` are in
+   Jira as task input" below). This also upserts `.crewco/index.json`.
+3. Ensure `.crewco/tasks/` and `.crewco/wt/` are in
    `.git/info/exclude` (append them if missing; leave `team.json`,
    `project.json`, `project.md`, `index.json` out of that ignore list —
    they're meant to be committed).
 4. Update `state.json` at every phase transition — `set --key phase
    --value "<phase>"` (see `schemas/task-state.json` for the enum), and
    `append --key rounds --value '{...}'` after each fix round. Round-aware
-   headless dispatches use `--task-dir .crewbench/tasks/<task-id> --round
+   headless dispatches use `--task-dir .crewco/tasks/<task-id> --round
    <n>` (§4) instead of a bare `--handoff` path, so run artifacts land at
-   `.crewbench/tasks/<task-id>/runs/<role>-r<n>.*`.
+   `.crewco/tasks/<task-id>/runs/<role>-r<n>.*`.
 5. On a normal finish, set `phase` to `done`/`stopped`/`failed` as
    appropriate; on an unhandled error, still leave the state file in a
-   sensible phase rather than abandoning it half-updated — `/crewbench:
-   resume` and `/crewbench:status` read it as-is.
+   sensible phase rather than abandoning it half-updated — `/crewco:
+   resume` and `/crewco:status` read it as-is.
 
 `test`, `review` and `design` use the same task folder and `state.json`
 shape (a `command` of `test`/`review`/`design`) but never loop past one
@@ -117,7 +117,7 @@ and base it's comparing).
 If `new-task`'s first argument (after flag-stripping, §1) matches
 `^[A-Z][A-Z0-9]+-\d+$` (e.g. `PROJ-123`), it's a Jira key, not free text.
 Check whether an Atlassian/Jira tool is available in your current
-session (a host CLI's own connected tools, not anything crewbench
+session (a host CLI's own connected tools, not anything crewco
 installs). If one is: fetch that issue's summary, description,
 acceptance criteria and linked subtasks and use them as the initial
 scope — anything after the key in the arguments is extra notes on top,
@@ -135,31 +135,31 @@ send before sending it.
 
 ### Project profile
 
-Before the first hand-off of any task, make sure `.crewbench/project.json`
+Before the first hand-off of any task, make sure `.crewco/project.json`
 exists:
 
-- If it does, read it (and `.crewbench/project.md`, if present) and include
+- If it does, read it (and `.crewco/project.md`, if present) and include
   a short summary of both — package manager, configured `commands`,
   languages/frameworks, source dirs, and `project.md`'s conventions — in
   **every** role hand-off, so each role doesn't have to rediscover configs
   itself.
-- If it doesn't, run `python3 <root>/bin/crewbench_profile.py detect --cwd .`,
+- If it doesn't, run `python3 <root>/bin/crewco_profile.py detect --cwd .`,
   show the compact result to the user, and ask them to confirm or correct it
-  once (this is the same flow `/crewbench:profile refresh` runs any time
-  later). Only after they confirm, write `.crewbench/project.json` (fields
+  once (this is the same flow `/crewco:profile refresh` runs any time
+  later). Only after they confirm, write `.crewco/project.json` (fields
   per `schemas/project.json`) with `confirmed: true`. Never write it
   silently. If detection finds nothing (empty `languages`), that's a valid
   confirmed result too — don't loop asking.
 - `project.json`'s `commands` (`lint`, `typecheck`, `test`, `test_changed`,
-  `build`, `format_check`) feed `bin/crewbench_gate.py` (§6, "Deterministic
+  `build`, `format_check`) feed `bin/crewco_gate.py` (§6, "Deterministic
   gate") directly — the gate reads `project.json` itself, you don't pass its
   commands on the command line.
 - `project.json`'s `agy_allow_rules` are suggestions only — show them (with
-  `crewbench_profile.py agy-rules`) via `/crewbench:profile`, never write to
+  `crewco_profile.py agy-rules`) via `/crewco:profile`, never write to
   `~/.gemini/antigravity-cli/settings.json` yourself.
 - `project.md` is free-form prose (folder structure, state management,
   styling approach, testing conventions) that only the user or
-  `/crewbench:profile edit` adds to — crewbench never invents conventions
+  `/crewco:profile edit` adds to — crewco never invents conventions
   and writes them there on its own.
 
 ## 1. Build the lineup
@@ -179,7 +179,7 @@ Merge, later wins:
    ui-ux on the `cheap` tier, tester and code-reviewer on the `strong` tier,
    everyone at `medium` effort, all on `host`; the developer runs with
    `permissions: skip`, everyone else `safe`.
-2. `.crewbench/team.json` in the project root, if it exists — the project's
+2. `.crewco/team.json` in the project root, if it exists — the project's
    saved lineup. Same shape as the defaults; may contain only some roles or
    fields, and may override `tiers`.
 3. Anything the user tells you for this task.
@@ -206,7 +206,7 @@ Also merged the same way, under a `workspace` key:
 
 | Field | Values |
 |---|---|
-| `mode` | `worktree` (default — `new-task` isolates the task in `git worktree add .crewbench/wt/<task-id>`) or `in-place` (work directly in the current checkout, pre-Phase-5 behavior) |
+| `mode` | `worktree` (default — `new-task` isolates the task in `git worktree add .crewco/wt/<task-id>`) or `in-place` (work directly in the current checkout, pre-Phase-5 behavior) |
 | `setup` | Shell commands to run once in a fresh worktree before delegating (e.g. `["npm ci"]`); empty by default |
 | `copy` | Ignored files to offer copying from the main tree into a fresh worktree (default `[".env", ".env.local"]`) |
 
@@ -219,8 +219,8 @@ Also merged the same way, under a `confirm_lineup` key:
 
 | Value | Behavior |
 |---|---|
-| `always` | Always ask (§2) before delegating, even if `.crewbench/team.json` exists. |
-| `when_unsaved` (default) | Ask only when there's no saved lineup (`.crewbench/team.json` doesn't exist) or the user is actively requesting a change this turn. If a saved lineup exists and nothing's changing, just show the table and proceed. |
+| `always` | Always ask (§2) before delegating, even if `.crewco/team.json` exists. |
+| `when_unsaved` (default) | Ask only when there's no saved lineup (`.crewco/team.json` doesn't exist) or the user is actively requesting a change this turn. If a saved lineup exists and nothing's changing, just show the table and proceed. |
 | `never` | Never ask — always just show the table and proceed, even with no saved lineup. |
 
 `--yes` (below) forces `never`-style behavior for that one invocation,
@@ -233,7 +233,7 @@ text. Strip a flag (and, where noted, its value token) out of the text
 before treating what's left as the task/scenario/description/branch name —
 an unrecognized `--something` is left alone, since it's probably part of
 the text itself (e.g. a shell flag the task description happens to
-mention), not a crewbench flag.
+mention), not a crewco flag.
 
 | Flag | Skills | Effect |
 |---|---|---|
@@ -248,27 +248,27 @@ These are exactly the third merge tier from §1 ("anything the user tells
 you for this task") expressed as flags instead of a live answer — apply
 them the same way you'd apply the equivalent spoken instruction, and don't
 ask about them again. They only affect this one invocation: nothing here
-gets written to `.crewbench/team.json` unless the user separately says to
+gets written to `.crewco/team.json` unless the user separately says to
 save it (§2).
 
 ### Model name freshness
 
 Tier defaults (`tiers[<cli>][cheap|strong]` in `config/defaults.json`) and
 anything a user names directly can drift out of date as CLIs retire or
-rename models. `/crewbench:team` checks every resolved model with:
+rename models. `/crewco:team` checks every resolved model with:
 
 ```
-python3 <root>/bin/crewbench_env.py check-model --cli <cli> --model <model>
+python3 <root>/bin/crewco_env.py check-model --cli <cli> --model <model>
 ```
 
 `{"checked": true, "found": false, "closest": [...]}` means that model
 isn't in the CLI's current list — tell the user, show `closest`, and
-offer to override `tiers.<cli>` in `.crewbench/team.json` on yes.
+offer to override `tiers.<cli>` in `.crewco/team.json` on yes.
 `{"checked": false}` means this CLI has no discovered model-listing
 command — as of writing that's `claude`, `codex` and `copilot`; only agy's
 `agy models` was confirmed. Skip the check silently for those three; never
 claim a model was verified when it wasn't. This check only runs from
-`/crewbench:team`, not from a task skill's own lineup-alignment (§2) or
+`/crewco:team`, not from a task skill's own lineup-alignment (§2) or
 every round — it's about keeping the saved/default lineup itself current,
 not a per-task gate.
 
@@ -282,7 +282,7 @@ below it.
 Whether you also ask, or just show the table and proceed, follows
 `confirm_lineup` above (as overridden by `--yes` for this one call):
 
-- `always`, or `when_unsaved` with no saved `.crewbench/team.json` yet:
+- `always`, or `when_unsaved` with no saved `.crewco/team.json` yet:
   ask whether to keep the table or change it, in one single, compact
   message — don't split this into a lineup question and a separate
   question later if you can combine them (e.g. `new-task`'s own UI/UX
@@ -301,7 +301,7 @@ rounds", "work in-place this time".
 - If they say go / looks good, proceed.
 - If they change something, confirm the new table, then ask once whether
   to save it as the project default. Only on yes, write the changed fields
-  to `.crewbench/team.json` (create it; merge into it if it already
+  to `.crewco/team.json` (create it; merge into it if it already
   exists; keep it minimal — only fields that differ from the defaults). A
   flag-driven, this-task-only override (above) is never offered for
   saving on its own — only an explicit spoken change is.
@@ -317,7 +317,7 @@ Copilot denies shell in `safe` mode (§4's Safety table), so a headless
 `safe` Copilot tester cannot run tests at all, only report what it would
 have run. Suggest `permissions: skip`, a different CLI for `tester`, or
 relying on §6's deterministic gate to actually run tests. This is the
-same check `/crewbench:team` runs on its own; do it here too since a task
+same check `/crewco:team` runs on its own; do it here too since a task
 skill's own lineup-alignment step is where this combination is actually
 picked, not just when explicitly editing the saved lineup.
 
@@ -329,13 +329,13 @@ For each role, after resolving:
 `permissions: safe`, AND the host can honor the requested model and effort
 natively (a `skip` role always uses the headless route):
 
-- Claude Code: the `crewbench:crewbench-<role>` subagent (`ui-ux` →
-  `crewbench:crewbench-ui-ux`). **Always pass the resolved `model` explicitly
+- Claude Code: the `crewco:crewco-<role>` subagent (`ui-ux` →
+  `crewco:crewco-ui-ux`). **Always pass the resolved `model` explicitly
   on the Agent call, regardless of the agent's frontmatter** — never rely on
   the frontmatter matching, since the two can drift. Effort can't be set per
   call — if the effort isn't `medium`, use the headless route with `claude`
   instead.
-- Copilot CLI: the `crewbench-<role>` custom agent, only when Copilot's
+- Copilot CLI: the `crewco-<role>` custom agent, only when Copilot's
   custom-agent invocation can be given a model per call (check
   `copilot --help` / `copilot help commands` for a per-agent or per-call
   model override — as of writing no such flag was found, so this branch is
@@ -348,7 +348,7 @@ natively (a `skip` role always uses the headless route):
   agent frontmatter's `model:` value (`sonnet`/`opus`) — those are Claude
   model names, not Copilot ones.
 - Antigravity CLI and Codex CLI: always use the headless route (neither
-  lets crewbench pin a subagent's model and effort, so they can only be
+  lets crewco pin a subagent's model and effort, so they can only be
   guaranteed through a separate process).
 
 **Headless CLI** — everything else. You run the dispatch script through
@@ -361,7 +361,7 @@ every native hand-off and instruct the role to work only inside it, but
 treat this as best-effort: nothing stops it from touching a path outside
 that tree. Headless dispatch's `--cwd <worktree>` (§4) is the reliable
 isolation mechanism, since the child process's actual cwd is set to the
-worktree. `/crewbench:team` should mention this trade-off when the lineup
+worktree. `/crewco:team` should mention this trade-off when the lineup
 mixes native and headless roles under `workspace.mode: worktree`.
 
 ### Per-host dispatch matrix
@@ -422,9 +422,9 @@ Every headless hand-off goes through one script, whichever CLI you are and
 whichever CLI the role runs on:
 
 ```
-python3 <root>/bin/crewbench_dispatch.py --role <role> --cli <cli> \
+python3 <root>/bin/crewco_dispatch.py --role <role> --cli <cli> \
     --model <model> --effort <effort> \
-    --task-dir .crewbench/tasks/<task-id> --round <n> \
+    --task-dir .crewco/tasks/<task-id> --round <n> \
     --cwd <worktree-or-project-root> \
     --handoff <handoff-file> [--skip-permissions]
 ```
@@ -438,8 +438,8 @@ against — pass the task's worktree path when `workspace.mode` is
 `worktree` (§5), otherwise the project root; it defaults to wherever you
 run the script from if omitted.
 
-1. Write the hand-off to `.crewbench/tasks/<task-id>/runs/<role>-r<round>.md`
-   (§0 already put `.crewbench/tasks/` in `.git/info/exclude`). Include
+1. Write the hand-off to `.crewco/tasks/<task-id>/runs/<role>-r<round>.md`
+   (§0 already put `.crewco/tasks/` in `.git/info/exclude`). Include
    only the hand-off itself — task, acceptance criteria, files, diff, spec,
    previous role results — everything the native subagent would have
    received. The script assembles the full prompt (role brief from
@@ -462,9 +462,9 @@ run the script from if omitted.
    shell tool call does next:
 
    ```
-   python3 <root>/bin/crewbench_dispatch.py start --role <role> --cli <cli> \
+   python3 <root>/bin/crewco_dispatch.py start --role <role> --cli <cli> \
        --model <model> --effort <effort> \
-       --task-dir .crewbench/tasks/<task-id> --round <n> \
+       --task-dir .crewco/tasks/<task-id> --round <n> \
        --cwd <worktree-or-project-root> \
        --handoff <handoff-file> [--skip-permissions]
    ```
@@ -474,29 +474,29 @@ run the script from if omitted.
    soon as it starts, tell the user how to watch it, e.g.:
 
    > Developer is working on agy — watch it live with
-   > `tail -f .crewbench/tasks/<task-id>/runs/developer-r1.log`
+   > `tail -f .crewco/tasks/<task-id>/runs/developer-r1.log`
 
    Then poll with `wait`, choosing `--max-seconds` comfortably under your
    own host's shell-tool timeout (e.g. 240s) and calling it again if it
    comes back `"all_finished": false`:
 
    ```
-   python3 <root>/bin/crewbench_dispatch.py wait \
-       --task-dir .crewbench/tasks/<task-id> \
+   python3 <root>/bin/crewco_dispatch.py wait \
+       --task-dir .crewco/tasks/<task-id> \
        --run <role>-r<round> [--run <role2>-r<round>] \
        --max-seconds 240
    ```
 
    Prints `{"runs": {...status.json entries...}, "envelopes": {...finished
    runs' full envelopes...}, "all_finished": bool}`. If the user wants to
-   abandon a run mid-flight, `crewbench_dispatch.py cancel --task-dir
+   abandon a run mid-flight, `crewco_dispatch.py cancel --task-dir
    <task-dir> --run <role>-r<round>` kills its whole process group and marks
    it `failed`.
 
    `<task-dir>/runs/status.json` lists every run with its state (starting /
    running / done / failed), pid, log file and session id regardless of
    which of `start`/`wait` you last called — read it directly when the user
-   asks what the crew is doing (`/crewbench:status` does this for the user
+   asks what the crew is doing (`/crewco:status` does this for the user
    directly). The foreground, single-call form (no `start`/`wait`/`cancel`
    subcommand — just the flags as shown at the top of this section) still
    works exactly as before, for hosts or scripts where blocking in place is
@@ -605,7 +605,7 @@ back:
   needs the latest, not a history).
 
 Do this after every run, not just at the end, so a stopped or failed task
-still has a partial usage summary for `/crewbench:status`.
+still has a partial usage summary for `/crewco:status`.
 
 ### Safety
 
@@ -669,7 +669,7 @@ to `safe`; don't try to get around the block.
 ### `skip` launch friction on a Claude Code host
 
 When you (the Team Lead) are running as `claude`, every headless
-`crewbench_dispatch.py` call (§4) goes through your own Bash tool, which by
+`crewco_dispatch.py` call (§4) goes through your own Bash tool, which by
 default asks the user to approve it every single time unless their
 `~/.claude/settings.json` already allow-lists it — pure ceremony once
 they've approved it once. Check for this proactively instead of letting
@@ -677,16 +677,16 @@ them discover it by being asked over and over:
 
 - Read `~/.claude/settings.json` (a plain file read, not a dispatch) and
   look in `permissions.allow` for an entry that already covers `python3
-  <root>/bin/crewbench_dispatch.py ...` invocations, e.g. `Bash(python3
-  */crewbench_dispatch.py *)` or a broader one like `Bash(python3 *)`
+  <root>/bin/crewco_dispatch.py ...` invocations, e.g. `Bash(python3
+  */crewco_dispatch.py *)` or a broader one like `Bash(python3 *)`
   (`VERIFY`: the exact glob semantics of Claude's `Bash(...)` allow-rule
   syntax weren't re-derived from a live example on this machine — match
   loosely against this pattern, don't require an exact string).
-- If nothing matches, tell the user once — in `/crewbench:team`, and the
+- If nothing matches, tell the user once — in `/crewco:team`, and the
   first time any other skill is about to make its first dispatch call this
   session — that every headless dispatch will otherwise prompt for
   approval, and show the exact line to add themselves: `Bash(python3
-  */crewbench_dispatch.py *)`. **Never edit the file yourself** — only
+  */crewco_dispatch.py *)`. **Never edit the file yourself** — only
   show it.
 - Check this once per session (remember the answer for the rest of the
   conversation), not once per round or per dispatch call. Meaningless on
@@ -709,7 +709,7 @@ Before the **first** dispatch to each **non-host** CLI in the agreed lineup
 for a task, run:
 
 ```
-python3 <root>/bin/crewbench_dispatch.py doctor --cli <cli>
+python3 <root>/bin/crewco_dispatch.py doctor --cli <cli>
 ```
 
 Prints `{"cli", "installed", "version", "config_dir", "config_dir_writable",
@@ -729,7 +729,7 @@ confirmed). agy has no dedicated status command, so it falls back to `agy
 models` (a real, small network+auth call); copilot has none either, so it
 falls back to checking for a stored credential or token env var, which is
 weaker evidence than an actual call (`VERIFY` if either CLI adds a real
-status command). If `crewbench_dispatch.py`'s own envelope `error` for a
+status command). If `crewco_dispatch.py`'s own envelope `error` for a
 regular dispatch (not `doctor`) matches a network, `EACCES`, or
 not-logged-in signature, it already says so in plain words instead of just
 the exit code — pass that along verbatim rather than re-diagnosing it
@@ -737,14 +737,14 @@ yourself.
 
 ### Nested-agent hygiene
 
-The CLI you dispatch a role to may well have crewbench installed too — a
+The CLI you dispatch a role to may well have crewco installed too — a
 role must never treat that as an invitation to delegate further:
 
-- **Recursion guard.** The dispatch script sets `CREWBENCH_ROLE=<role>` and
-  `CREWBENCH_TASK=<task-id>` in every headless child's environment (this is
+- **Recursion guard.** The dispatch script sets `CREWCO_ROLE=<role>` and
+  `CREWCO_TASK=<task-id>` in every headless child's environment (this is
   automatic — you don't set these yourself), and refuses to run at all if
-  `CREWBENCH_ROLE` is already set in its own environment. A role's brief and
-  limits already say it must never invoke crewbench skills or dispatch other
+  `CREWCO_ROLE` is already set in its own environment. A role's brief and
+  limits already say it must never invoke crewco skills or dispatch other
   agents; this is the enforced backstop for that rule on the headless path.
   For a **native** subagent hand-off, say the same thing explicitly in the
   hand-off text, since there's no environment variable to enforce it there.
@@ -759,7 +759,7 @@ role must never treat that as an invitation to delegate further:
   A nested CLI inheriting a *different* host's markers could misbehave —
   the dispatch script strips every other host's known marker prefixes from
   a headless child's environment before launch, keeping only the target
-  CLI's own (see `HOST_ENV_PREFIXES` in `bin/crewbench_dispatch.py` for the
+  CLI's own (see `HOST_ENV_PREFIXES` in `bin/crewco_dispatch.py` for the
   exact list, which is deliberately conservative and may not be
   exhaustive — `VERIFY` if a host adds new markers).
 - **Same-CLI headless delegation** (e.g. a codex host dispatching a codex
@@ -791,10 +791,10 @@ This is the default for `new-task` (`workspace.mode: worktree`, §1). `test`,
    **not** include those uncommitted changes), commit/stash them
    themselves first, or use `in-place` for this task instead. Never stash
    or commit on the user's behalf.
-4. Create the worktree: `git worktree add .crewbench/wt/<task-id> -b
+4. Create the worktree: `git worktree add .crewco/wt/<task-id> -b
    crew/<task-id> <base_commit>`. If `state.json.jira_key` is set (§0),
    use `<jira-key>-<slug>` in place of `<task-id>` in both the worktree
-   path and branch name (e.g. `.crewbench/wt/PROJ-123-fix-login`, branch
+   path and branch name (e.g. `.crewco/wt/PROJ-123-fix-login`, branch
    `crew/PROJ-123-fix-login`) — same mechanics, just a name a human
    recognizes. Save the worktree's absolute path to `state.json.worktree`
    and the branch name to `state.json.branch`.
@@ -839,17 +839,17 @@ After the loop finishes and the user approves the work:
 ### Cleanup
 
 Once the work is merged/cherry-picked, or the task is stopped, ask whether
-to remove the worktree (`git worktree remove .crewbench/wt/<task-id>`) and
-delete `crew/<task-id>`. `/crewbench:status --cleanup` finds finished tasks
+to remove the worktree (`git worktree remove .crewco/wt/<task-id>`) and
+delete `crew/<task-id>`. `/crewco:status --cleanup` finds finished tasks
 with a leftover worktree and offers this per task; it also runs `git
 worktree prune` for any worktree directories someone deleted by hand.
 
-Separately, `/crewbench:status --cleanup` also offers to delete a finished
+Separately, `/crewco:status --cleanup` also offers to delete a finished
 task's own directory entirely (every round's logs/results/`events.jsonl`/
 `state.json`, not just its worktree) once it's old enough
-(`crewbench_state.py cleanup-candidates`, default 30 days since
+(`crewco_state.py cleanup-candidates`, default 30 days since
 `updated_at`) — always listed first, always confirmed per task, never
-automatic. `crewbench_state.py delete` refuses outright for a task that
+automatic. `crewco_state.py delete` refuses outright for a task that
 isn't genuinely `done`/`stopped`/`failed` right now, so a task resumed
 after being listed as a candidate can't be deleted out from under it.
 
@@ -875,11 +875,11 @@ Once the developer reports done for a round, run the gate before dispatching
 the tester and code-reviewer:
 
 ```
-python3 <root>/bin/crewbench_gate.py --cwd <worktree-or-project-root> \
-    --task-dir .crewbench/tasks/<task-id> --round <n>
+python3 <root>/bin/crewco_gate.py --cwd <worktree-or-project-root> \
+    --task-dir .crewco/tasks/<task-id> --round <n>
 ```
 
-It reads `.crewbench/project.json`'s `commands` itself (no need to pass
+It reads `.crewco/project.json`'s `commands` itself (no need to pass
 them) and runs, in order, whichever of `format_check`, `lint`, `typecheck`,
 `test_changed` (or `test` if `test_changed` isn't configured) has a command
 configured — skipping any that don't. It stops at the first failing step.
@@ -950,7 +950,7 @@ report as "optional follow-ups" instead.
 
 When dispatching the tester, offer this — never assume it — only if
 **both** hold: (a) a UI/UX spec exists for this task or the task visibly
-touches UI, and (b) `.crewbench/project.json`'s `frameworks` already
+touches UI, and (b) `.crewco/project.json`'s `frameworks` already
 includes `playwright` (§0's "Project profile" — never install it or a
 browser yourself, ask first if it isn't already there and the user wants
 it added). If both hold, tell the tester in the hand-off:
@@ -958,7 +958,7 @@ it added). If both hold, tell the tester in the hand-off:
 - It may write and run a Playwright check loading the affected page or
   component and capturing a screenshot for each state the spec lists
   (e.g. loading, empty, error, success), saved under exactly
-  `.crewbench/tasks/<task-id>/screenshots/`.
+  `.crewco/tasks/<task-id>/screenshots/`.
 - If a dev server needs to be running, give it the exact start command
   from `project.json`'s `commands` (or ask the user which one, if none is
   configured), have it run the server in the background inside the

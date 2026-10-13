@@ -10,7 +10,7 @@ def test_py_override_passes_through_unchanged_on_posix(dispatch, monkeypatch):
 
 def test_py_override_gets_interpreter_prefix_on_windows(dispatch, monkeypatch):
     # Regression: found running this repo's own test suite for real on
-    # Windows CI -- CREWBENCH_CLI_OVERRIDE_<CLI> pointing at a bare .py
+    # Windows CI -- CREWCO_CLI_OVERRIDE_<CLI> pointing at a bare .py
     # path failed with an empty envelope, because subprocess.Popen can't
     # launch a .py file directly on Windows without shell=True.
     monkeypatch.setattr(dispatch.os, "name", "nt")

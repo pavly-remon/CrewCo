@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
-crewbench_gate = importlib.import_module("crewbench_gate")
+crewco_gate = importlib.import_module("crewco_gate")
 
 
 def run_gate(cwd, task_dir, round_n=1, extra_args=()):
     result = subprocess.run(
-        [sys.executable, str(Path(crewbench_gate.__file__)),
+        [sys.executable, str(Path(crewco_gate.__file__)),
          "--cwd", str(cwd), "--task-dir", str(task_dir), "--round", str(round_n), *extra_args],
         capture_output=True, text=True,
     )
@@ -21,8 +21,8 @@ def run_gate(cwd, task_dir, round_n=1, extra_args=()):
 
 
 def write_project_json(cwd, commands):
-    (cwd / ".crewbench").mkdir(parents=True, exist_ok=True)
-    (cwd / ".crewbench" / "project.json").write_text(json.dumps({"commands": commands}))
+    (cwd / ".crewco").mkdir(parents=True, exist_ok=True)
+    (cwd / ".crewco" / "project.json").write_text(json.dumps({"commands": commands}))
 
 
 def test_no_commands_configured_is_ok_and_empty(tmp_path):
@@ -114,7 +114,7 @@ def test_project_json_override_path(tmp_path):
 
 
 def test_steps_to_run_skips_unconfigured():
-    steps = crewbench_gate.steps_to_run({"lint": "eslint .", "typecheck": None, "test": None})
+    steps = crewco_gate.steps_to_run({"lint": "eslint .", "typecheck": None, "test": None})
     assert steps == [("lint", "eslint .")]
 
 
@@ -122,14 +122,14 @@ def test_split_strips_quotes_around_a_token():
     # Regression: shlex.split(cmd, posix=True) strips quotes correctly but
     # mangles a Windows backslash path; posix=False preserves backslashes
     # but keeps the quote characters. _split() must get both right.
-    tokens = crewbench_gate._split('python -c "import sys; sys.exit(1)"')
+    tokens = crewco_gate._split('python -c "import sys; sys.exit(1)"')
     assert tokens == ["python", "-c", "import sys; sys.exit(1)"]
 
 
 def test_split_preserves_backslashes_in_an_unquoted_windows_path():
-    tokens = crewbench_gate._split(r"C:\hostedtoolcache\windows\Python\3.12.10\x64\python.exe -c 1")
+    tokens = crewco_gate._split(r"C:\hostedtoolcache\windows\Python\3.12.10\x64\python.exe -c 1")
     assert tokens[0] == r"C:\hostedtoolcache\windows\Python\3.12.10\x64\python.exe"
 
 
 def test_split_handles_plain_unquoted_command():
-    assert crewbench_gate._split("pytest -q --maxfail=1") == ["pytest", "-q", "--maxfail=1"]
+    assert crewco_gate._split("pytest -q --maxfail=1") == ["pytest", "-q", "--maxfail=1"]

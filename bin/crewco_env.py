@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Detect which CLI host crewbench is running under, and resolve the plugin root.
+"""Detect which CLI host crewco is running under, and resolve the plugin root.
 
 Usage:
-  python3 <root>/bin/crewbench_env.py whoami
+  python3 <root>/bin/crewco_env.py whoami
       -> {"host": ..., "plugin_root": ..., "python": ..., "platform": ..., "config_dir": ...}
 
 Host detection, in order:
-  1. CREWBENCH_HOST_OVERRIDE env var, if set to a known host -- lets a test or
+  1. CREWCO_HOST_OVERRIDE env var, if set to a known host -- lets a test or
      a user who was asked once (see lib/dispatch.md) force the answer.
   2. CLAUDECODE=1 -- Claude Code's own confirmed marker: present in this
      process's environment while actually running inside Claude Code (checked
@@ -26,7 +26,7 @@ ask the user once and record `host_override` in the task's state.json rather
 than guessing every time (see lib/dispatch.md "Host detection").
 
 Usage:
-  python3 <root>/bin/crewbench_env.py check-model --cli <cli> --model <model>
+  python3 <root>/bin/crewco_env.py check-model --cli <cli> --model <model>
       -> { "cli", "model", "checked", "found", "closest": [...],
            "available": [...], "error" }
       Only "agy" has a discovered model-listing command (`agy models`) as
@@ -50,28 +50,28 @@ KNOWN_HOSTS = ("claude", "codex", "agy", "copilot")
 def cli_argv_prefix(cli_path):
     """The argv prefix that actually launches `cli_path`. A single-element
     passthrough for every real, installed CLI (always directly executable)
-    in production. Only matters for CREWBENCH_CLI_OVERRIDE_<CLI> (tests):
+    in production. Only matters for CREWCO_CLI_OVERRIDE_<CLI> (tests):
     on Windows, a bare `.py` path isn't directly executable via subprocess
     (no shell=True, no file-association lookup the way double-clicking or
     `cmd.exe` would do it — confirmed live: `[WinError 193] %1 is not a
     valid Win32 application`), so it's launched through the current Python
-    interpreter instead. Shared by crewbench_dispatch.py (the role-CLI
+    interpreter instead. Shared by crewco_dispatch.py (the role-CLI
     spawn and doctor's checks) and this module's own list_models()."""
     if os.name == "nt" and cli_path.lower().endswith(".py"):
         return [sys.executable, cli_path]
     return [cli_path]
 
-# Real, per-host crewbench plugin-cache locations, confirmed by installing
-# crewbench under all four CLIs on one development machine (agy's cache has
+# Real, per-host crewco plugin-cache locations, confirmed by installing
+# crewco under all four CLIs on one development machine (agy's cache has
 # no version subdirectory; claude/codex do). copilot's is a best-effort
 # pattern from `copilot plugin --help`'s described layout -- VERIFY, since no
-# copilot crewbench install existed to inspect when this was written.
+# copilot crewco install existed to inspect when this was written.
 PLUGIN_ROOT_GLOBS = {
-    "claude": ["~/.claude/plugins/cache/*/crewbench/*"],
-    "codex": ["~/.codex/plugins/cache/*/crewbench/*"],
-    "agy": ["~/.gemini/config/plugins/crewbench"],
-    "copilot": ["~/.copilot/installed-plugins/*/crewbench*",
-                "~/.copilot/installed-plugins/crewbench*"],  # VERIFY: unconfirmed layout
+    "claude": ["~/.claude/plugins/cache/*/crewco/*"],
+    "codex": ["~/.codex/plugins/cache/*/crewco/*"],
+    "agy": ["~/.gemini/config/plugins/crewco"],
+    "copilot": ["~/.copilot/installed-plugins/*/crewco*",
+                "~/.copilot/installed-plugins/crewco*"],  # VERIFY: unconfirmed layout
 }
 
 # Each CLI's config/credentials directory. codex and copilot support an env
@@ -127,7 +127,7 @@ def parent_chain(max_depth=10):
 
 
 def detect_host(chain=None):
-    override = os.environ.get("CREWBENCH_HOST_OVERRIDE")
+    override = os.environ.get("CREWCO_HOST_OVERRIDE")
     if override in KNOWN_HOSTS:
         return override
     if os.environ.get("CLAUDECODE") == "1":
@@ -144,14 +144,14 @@ def resolve_plugin_root():
 
     `CLAUDE_PLUGIN_ROOT` covers hosts that expand the placeholder or set the
     env var themselves. Beyond that, this script's own file path is always
-    correct: it only runs from inside an installed crewbench's `bin/`, so
+    correct: it only runs from inside an installed crewco's `bin/`, so
     `parent.parent` of this file *is* `<root>`, regardless of host -- no
     search of `PLUGIN_ROOT_GLOBS` is needed for the script's own purposes.
     Those globs exist for `lib/dispatch.md` to document as a fallback for the
     Team Lead (an LLM reading a skill file), which faces the real version of
     this problem: finding `<root>` *before* it can invoke this script.
     """
-    override = os.environ.get("CREWBENCH_PLUGIN_ROOT")
+    override = os.environ.get("CREWCO_PLUGIN_ROOT")
     if override and Path(override).is_dir():
         return override
     placeholder = os.environ.get("CLAUDE_PLUGIN_ROOT")
@@ -231,11 +231,11 @@ def main():
             cli = args[args.index("--cli") + 1]
             model = args[args.index("--model") + 1]
         except (ValueError, IndexError):
-            raise SystemExit("usage: crewbench_env.py check-model --cli <cli> --model <model>")
+            raise SystemExit("usage: crewco_env.py check-model --cli <cli> --model <model>")
         cli_path = shutil.which(cli) or cli
         print(json.dumps(check_model(cli, cli_path, model), indent=2))
         return
-    raise SystemExit("usage: crewbench_env.py whoami | check-model --cli <cli> --model <model>")
+    raise SystemExit("usage: crewco_env.py whoami | check-model --cli <cli> --model <model>")
 
 
 if __name__ == "__main__":

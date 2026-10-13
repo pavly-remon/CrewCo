@@ -17,7 +17,7 @@ What it does, for every **installed** host CLI:
    JSON output verbatim (VERIFY: the exact non-interactive invocation for
    asking a host to run a shell command and report its output is inferred
    from each CLI's own `-p`/`exec` flags documented in `bin/
-   crewbench_dispatch.py`'s `build_command`, not confirmed live for this
+   crewco_dispatch.py`'s `build_command`, not confirmed live for this
    purpose specifically).
 3. Runs one real headless `code-reviewer` dispatch (read-only, the CLI's
    cheap tier, low effort — cheapest real check available) against the
@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DISPATCH = ROOT / "bin" / "crewbench_dispatch.py"
+DISPATCH = ROOT / "bin" / "crewco_dispatch.py"
 ALL_CLIS = ["claude", "codex", "agy", "copilot"]
 
 # Cheapest tier per CLI (mirrors config/defaults.json's `cheap` tier), used
@@ -63,7 +63,7 @@ def installed(cli):
 
 
 def make_throwaway_repo():
-    tmp = Path(tempfile.mkdtemp(prefix="crewbench-matrix-smoke-"))
+    tmp = Path(tempfile.mkdtemp(prefix="crewco-matrix-smoke-"))
     (tmp / "calc.py").write_text(BUGGY_SOURCE)
     (tmp / "test_calc.py").write_text(BUGGY_TEST)
     subprocess.run(["git", "init", "-q"], cwd=tmp, check=True)

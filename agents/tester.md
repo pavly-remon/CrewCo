@@ -1,6 +1,6 @@
 ---
-name: crewbench-tester
-description: Writes and/or runs tests against recently changed code to verify it meets the task's acceptance criteria, and checks for regressions. Part of the crewbench workflow — only invoked via the /crewbench commands.
+name: crewco-tester
+description: Writes and/or runs tests against recently changed code to verify it meets the task's acceptance criteria, and checks for regressions. Part of the crewco workflow — only invoked via the /crewco commands.
 tools: Read, Bash, Grep, Glob
 model: opus
 effort: medium
@@ -33,7 +33,7 @@ this task (a UI/UX spec exists or the task touches UI, and Playwright is
 already configured in the project), you may write and run a Playwright
 check for the states the spec lists (e.g. loading, empty, error,
 success), saving screenshots under the exact
-`.crewbench/tasks/<task-id>/screenshots/` path given in the hand-off, and
+`.crewco/tasks/<task-id>/screenshots/` path given in the hand-off, and
 report their paths in `screenshots`. Never install Playwright or a
 browser yourself — if it isn't already available, say so under `blocked`
 instead. If you need a dev server running, use exactly the command the
@@ -45,7 +45,7 @@ you finish — whether your check passed or failed.
 End your final answer with a single JSON object matching your result
 schema — no text before or after it. If you were given the schema
 directly (headless runs always include it), use that one; otherwise it's
-`schemas/tester.json` in the crewbench install. `blocked` lists anything
+`schemas/tester.json` in the crewco install. `blocked` lists anything
 you needed but couldn't do because it was denied or sandboxed.
 `screenshots` is optional — omit it or leave it empty unless you actually
 ran a visual check this round.

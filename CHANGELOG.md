@@ -2,7 +2,7 @@
 
 ## v3.1.0
 
-Hardens the `.crewbench/` on-disk format into a safe, versioned contract,
+Hardens the `.crewco/` on-disk format into a safe, versioned contract,
 with no change to plugin workflow behavior. Full contract reference:
 `docs/contract/README.md`.
 
@@ -46,25 +46,25 @@ with no change to plugin workflow behavior. Full contract reference:
 
 ## v3.0.0
 
-A large "make it practical for daily use" release. Every crewbench-owned
+A large "make it practical for daily use" release. Every crewco-owned
 file changed; if you're upgrading from 2.x, read the README's "Upgrading
 from 2.x" section before your next task.
 
 ### Breaking / layout changes
 
-- Run artifacts moved from `.crewbench/runs/` to
-  `.crewbench/tasks/<task-id>/runs/<role>-r<round>.*` — every task now has
+- Run artifacts moved from `.crewco/runs/` to
+  `.crewco/tasks/<task-id>/runs/<role>-r<round>.*` — every task now has
   its own folder and a `state.json` (see "Task identity" below).
-  `.crewbench/team.json` keeps working unchanged.
+  `.crewco/team.json` keeps working unchanged.
 - `new-task` now isolates each task in a git worktree
-  (`.crewbench/wt/<task-id>`) by default. Set `workspace.mode: in-place`
-  in `.crewbench/team.json` to keep the pre-3.0 behavior of working
+  (`.crewco/wt/<task-id>`) by default. Set `workspace.mode: in-place`
+  in `.crewco/team.json` to keep the pre-3.0 behavior of working
   directly in your checkout.
 
 ### Added
 
 - **Task identity, state, and resumability**: every task gets an id, a
-  `state.json`, `/crewbench:status` to inspect it, and `/crewbench:resume`
+  `state.json`, `/crewco:status` to inspect it, and `/crewco:resume`
   to pick an interrupted one back up without re-asking the lineup.
 - **Git worktree isolation** for `new-task`, with a pre-flight (dirty-tree
   check, environment setup, `.env*` copy prompt) and a commit step that
@@ -73,18 +73,18 @@ from 2.x" section before your next task.
   Copilot CLI, Antigravity `agy`) can delegate any role to any of the
   four, via a detached start/wait/cancel dispatch protocol that doesn't
   depend on your shell tool's own timeout or backgrounding behavior.
-  `/crewbench:doctor` preflights a CLI's install/network/auth before it's
+  `/crewco:doctor` preflights a CLI's install/network/auth before it's
   dispatched to.
 - **Diff-aware review loop**: the reviewer always gets a real diff against
   the task's base commit; later rounds also get the delta since the
   previous round and must say whether each prior issue is resolved. A
   severity threshold (`loop.fix_threshold`) and oscillation detection stop
   the loop from spinning on the same stuck issue.
-- **Project profile** (`.crewbench/project.json`/`project.md`,
-  `/crewbench:profile`): detects package manager, lint/typecheck/test/
+- **Project profile** (`.crewco/project.json`/`project.md`,
+  `/crewco:profile`): detects package manager, lint/typecheck/test/
   build commands, languages and frameworks once, confirmed by you, then
   shared with every role hand-off instead of each role rediscovering it.
-- **Deterministic gate** (`bin/crewbench_gate.py`): runs your project's
+- **Deterministic gate** (`bin/crewco_gate.py`): runs your project's
   own lint/typecheck/test commands before the LLM tester; a failing step
   goes straight back to the developer instead of spending a tester/
   reviewer round on it.
@@ -93,13 +93,13 @@ from 2.x" section before your next task.
   flags shortcut questions you already know the answer to. Commit and
   push confirmation are never skippable.
 - **Usage and timing report**: every run records whatever timing/token/
-  cost data its CLI exposes; the final report and `/crewbench:status` end
+  cost data its CLI exposes; the final report and `/crewco:status` end
   with a one-line-per-role summary and a total.
 - `scripts/bump_version.py` for keeping all three plugin manifests' 
   version in sync, alongside the existing `scripts/check_manifests.py` CI
   check.
 - Model name freshness and a Copilot-`safe`-tester warning in
-  `/crewbench:team`.
+  `/crewco:team`.
 
 ### Fixed
 
@@ -139,7 +139,7 @@ from 2.x" section before your next task.
   yet on this machine — found on a fresh CI run — it now also accepts a
   directory that doesn't exist yet but has a writable existing ancestor
   (config dirs are typically created lazily on first login).
-- `CREWBENCH_CLI_OVERRIDE_<CLI>` (test-only, injects a fake CLI script)
+- `CREWCO_CLI_OVERRIDE_<CLI>` (test-only, injects a fake CLI script)
   no longer fails to launch on Windows — found running this repo's own
   test suite for real on Windows CI — a bare `.py` path isn't directly
   executable there without `shell=True`; it's now launched through the
@@ -156,11 +156,11 @@ from 2.x" section before your next task.
   run if the child exits (or just closes stdin) before reading it all —
   confirmed live on Windows, where this raises `BrokenPipeError`
   immediately rather than tolerating it.
-- `crewbench_env.py`'s `check-model`/`list_models()` (and, indirectly,
-  `/crewbench:team`'s model-freshness check) now also goes through the
+- `crewco_env.py`'s `check-model`/`list_models()` (and, indirectly,
+  `/crewco:team`'s model-freshness check) now also goes through the
   same Windows `.py`-launch fix as the main dispatch path — it was
   missed in the first pass at that fix.
-- `crewbench_gate.py`'s command splitting picks the right `shlex` mode
+- `crewco_gate.py`'s command splitting picks the right `shlex` mode
   now instead of just one of the two available trade-offs — confirmed
   live on Windows: `posix=False` keeps a quoted command's literal quote
   characters as part of one argument (so `python -c "import sys;

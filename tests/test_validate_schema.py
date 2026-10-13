@@ -98,5 +98,5 @@ def test_tester_schema_accepts_screenshots_list(dispatch):
     schema = json.loads((dispatch.ROOT / "schemas" / "tester.json").read_text())
     result = {"verdict": "pass", "summary": "ok", "tests_run": [], "tests_added": [],
               "failures": [], "blocked": [],
-              "screenshots": [".crewbench/tasks/t1/screenshots/empty.png"]}
+              "screenshots": [".crewco/tasks/t1/screenshots/empty.png"]}
     assert dispatch.validate(result, schema) is None

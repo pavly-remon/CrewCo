@@ -9,15 +9,15 @@ from datetime import timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
-crewbench_state = importlib.import_module("crewbench_state")
-crewbench_fs = importlib.import_module("crewbench_fs")
+crewco_state = importlib.import_module("crewco_state")
+crewco_fs = importlib.import_module("crewco_fs")
 
 UTC_TS_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 def run_state(*args, cwd):
     result = subprocess.run(
-        [sys.executable, str(Path(crewbench_state.__file__)), *args],
+        [sys.executable, str(Path(crewco_state.__file__)), *args],
         cwd=cwd, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -25,26 +25,26 @@ def run_state(*args, cwd):
 
 
 def test_now_iso_is_utc_with_explicit_offset():
-    ts = crewbench_fs.now_iso()
+    ts = crewco_fs.now_iso()
     assert UTC_TS_RE.match(ts), f"{ts!r} is not UTC ISO-8601 with an explicit Z offset"
 
 
 def test_new_task_state_has_utc_timestamps_and_schema_version(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t1"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t1"
     state = run_state("new", "--task-dir", str(task_dir), "--id", "t1",
                        "--command", "new-task", "--title", "T", cwd=tmp_path)
-    assert state["schema_version"] == crewbench_fs.SCHEMA_VERSION
+    assert state["schema_version"] == crewco_fs.SCHEMA_VERSION
     assert UTC_TS_RE.match(state["created_at"])
     assert UTC_TS_RE.match(state["updated_at"])
 
-    index = json.loads((tmp_path / ".crewbench" / "index.json").read_text())
-    assert index["t1"]["schema_version"] == crewbench_fs.SCHEMA_VERSION
+    index = json.loads((tmp_path / ".crewco" / "index.json").read_text())
+    assert index["t1"]["schema_version"] == crewco_fs.SCHEMA_VERSION
 
 
 def test_legacy_state_missing_schema_version_still_reads(tmp_path):
     # Simulate a state.json written before this field existed: no
     # schema_version, naive local timestamp.
-    task_dir = tmp_path / ".crewbench" / "tasks" / "legacy"
+    task_dir = tmp_path / ".crewco" / "tasks" / "legacy"
     task_dir.mkdir(parents=True)
     legacy_state = {
         "id": "legacy", "command": "new-task", "title": "Legacy",
@@ -67,22 +67,22 @@ def test_legacy_state_missing_schema_version_still_reads(tmp_path):
 
 
 def test_parse_legacy_or_utc_handles_both_formats():
-    utc = crewbench_fs.parse_legacy_or_utc("2026-09-18T14:03:22Z")
+    utc = crewco_fs.parse_legacy_or_utc("2026-09-18T14:03:22Z")
     assert utc.tzinfo is not None and utc.utcoffset().total_seconds() == 0
 
-    legacy = crewbench_fs.parse_legacy_or_utc("2025-01-01T00:00:00")
+    legacy = crewco_fs.parse_legacy_or_utc("2025-01-01T00:00:00")
     assert legacy.tzinfo is not None  # treated as local time, but comparable
 
-    assert crewbench_fs.parse_legacy_or_utc(None) is None
-    assert crewbench_fs.parse_legacy_or_utc("not-a-timestamp") is None
+    assert crewco_fs.parse_legacy_or_utc(None) is None
+    assert crewco_fs.parse_legacy_or_utc("not-a-timestamp") is None
 
 
 def test_list_sorts_legacy_and_utc_timestamps_correctly(tmp_path):
-    root = tmp_path / ".crewbench"
+    root = tmp_path / ".crewco"
     (root).mkdir(parents=True)
     index = {
         "old": {"id": "old", "title": "Old", "updated_at": "2020-01-01T00:00:00"},
-        "new": {"id": "new", "title": "New", "updated_at": crewbench_fs.now_iso()},
+        "new": {"id": "new", "title": "New", "updated_at": crewco_fs.now_iso()},
         "broken": {"id": "broken", "title": "Broken", "updated_at": "garbage"},
     }
     (root / "index.json").write_text(json.dumps(index), encoding="utf-8")
@@ -92,6 +92,6 @@ def test_list_sorts_legacy_and_utc_timestamps_correctly(tmp_path):
 
 
 def test_two_ids_from_same_text_in_same_minute_do_not_collide():
-    a = crewbench_state.make_task_id("hello world")
-    b = crewbench_state.make_task_id("hello world")
+    a = crewco_state.make_task_id("hello world")
+    b = crewco_state.make_task_id("hello world")
     assert a != b

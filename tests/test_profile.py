@@ -5,12 +5,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
-crewbench_profile = importlib.import_module("crewbench_profile")
+crewco_profile = importlib.import_module("crewco_profile")
 
 
 def run_profile(*args):
     result = subprocess.run(
-        [sys.executable, str(Path(crewbench_profile.__file__)), *args],
+        [sys.executable, str(Path(crewco_profile.__file__)), *args],
         capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -71,14 +71,14 @@ def test_detect_empty_dir_is_a_valid_confirmed_shape(tmp_path):
 
 
 def test_agy_rules_for_commands_uses_binary_and_subcommand_prefix():
-    rules = crewbench_profile.agy_rules_for_commands({
+    rules = crewco_profile.agy_rules_for_commands({
         "lint": "npm run lint", "test": "pytest -q", "solo": "go"
     })
     assert rules == ["command(npm run)", "command(pytest -q)", "command(go)"]
 
 
 def test_agy_rules_skips_null_commands_and_dedupes():
-    rules = crewbench_profile.agy_rules_for_commands({
+    rules = crewco_profile.agy_rules_for_commands({
         "lint": "npm run lint", "format_check": None, "test": "npm run lint"
     })
     assert rules == ["command(npm run)"]

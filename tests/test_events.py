@@ -1,5 +1,5 @@
-"""events.jsonl writer + emission from crewbench_state.py,
-crewbench_dispatch.py and crewbench_gate.py."""
+"""events.jsonl writer + emission from crewco_state.py,
+crewco_dispatch.py and crewco_gate.py."""
 import importlib
 import json
 import os
@@ -9,14 +9,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
-crewbench_state = importlib.import_module("crewbench_state")
-crewbench_fs = importlib.import_module("crewbench_fs")
-crewbench_dispatch = importlib.import_module("crewbench_dispatch")
+crewco_state = importlib.import_module("crewco_state")
+crewco_fs = importlib.import_module("crewco_fs")
+crewco_dispatch = importlib.import_module("crewco_dispatch")
 
 
 def run_state(*args, cwd):
     result = subprocess.run(
-        [sys.executable, str(Path(crewbench_state.__file__)), *args],
+        [sys.executable, str(Path(crewco_state.__file__)), *args],
         cwd=cwd, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -30,10 +30,10 @@ def read_events(task_dir):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-# --- crewbench_state.py emission -------------------------------------------
+# --- crewco_state.py emission -------------------------------------------
 
 def test_new_emits_task_created(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t1"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t1"
     run_state("new", "--task-dir", str(task_dir), "--id", "t1",
               "--command", "new-task", "--title", "T", "--jira-key", "PROJ-1", cwd=tmp_path)
     events = read_events(task_dir)
@@ -45,7 +45,7 @@ def test_new_emits_task_created(tmp_path):
 
 
 def test_set_phase_emits_phase_changed(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t2"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t2"
     run_state("new", "--task-dir", str(task_dir), "--id", "t2",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
     run_state("set", "--task-dir", str(task_dir), "--key", "phase",
@@ -57,7 +57,7 @@ def test_set_phase_emits_phase_changed(tmp_path):
 
 
 def test_set_phase_to_same_value_emits_no_event(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t3"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t3"
     run_state("new", "--task-dir", str(task_dir), "--id", "t3",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
     run_state("set", "--task-dir", str(task_dir), "--key", "phase",
@@ -67,7 +67,7 @@ def test_set_phase_to_same_value_emits_no_event(tmp_path):
 
 
 def test_set_round_emits_round_started(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t4"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t4"
     run_state("new", "--task-dir", str(task_dir), "--id", "t4",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
     run_state("set", "--task-dir", str(task_dir), "--key", "round", "--value", "1", cwd=tmp_path)
@@ -79,7 +79,7 @@ def test_set_round_emits_round_started(tmp_path):
 
 
 def test_append_notes_emits_note_added(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t5"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t5"
     run_state("new", "--task-dir", str(task_dir), "--id", "t5",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
     run_state("append", "--task-dir", str(task_dir), "--key", "notes",
@@ -90,7 +90,7 @@ def test_append_notes_emits_note_added(tmp_path):
 
 
 def test_set_unrelated_key_emits_no_state_event(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "t6"
+    task_dir = tmp_path / ".crewco" / "tasks" / "t6"
     run_state("new", "--task-dir", str(task_dir), "--id", "t6",
               "--command", "new-task", "--title", "T", cwd=tmp_path)
     run_state("set", "--task-dir", str(task_dir), "--key", "lineup.developer",
@@ -102,12 +102,12 @@ def test_set_unrelated_key_emits_no_state_event(tmp_path):
 # --- concurrency: no lost/interleaved/duplicate-seq events -----------------
 
 def test_concurrent_appends_have_gapless_monotonic_seq(tmp_path):
-    task_dir = tmp_path / ".crewbench" / "tasks" / "concurrent"
+    task_dir = tmp_path / ".crewco" / "tasks" / "concurrent"
     task_dir.mkdir(parents=True)
     N = 16
 
     def emit(i):
-        crewbench_fs.append_event(task_dir, "task.note_added", {"note": f"n{i}"})
+        crewco_fs.append_event(task_dir, "task.note_added", {"note": f"n{i}"})
 
     with ThreadPoolExecutor(max_workers=N) as pool:
         list(pool.map(emit, range(N)))
@@ -123,21 +123,21 @@ def test_concurrent_appends_have_gapless_monotonic_seq(tmp_path):
 # --- classify_log_entry ------------------------------------------------------
 
 def test_classify_log_entry():
-    assert crewbench_dispatch.classify_log_entry("says: hello") == "run.message"
-    assert crewbench_dispatch.classify_log_entry("tool: Bash {'command': 'ls'}") == "run.tool_call"
-    assert crewbench_dispatch.classify_log_entry("  error: boom") == "run.tool_error"
+    assert crewco_dispatch.classify_log_entry("says: hello") == "run.message"
+    assert crewco_dispatch.classify_log_entry("tool: Bash {'command': 'ls'}") == "run.tool_call"
+    assert crewco_dispatch.classify_log_entry("  error: boom") == "run.tool_error"
     # agy inline tool error: "tool: <name> <params>  -> <error message>"
-    assert crewbench_dispatch.classify_log_entry("tool: Shell {}  -> denied") == "run.tool_error"
-    assert crewbench_dispatch.classify_log_entry("session started (m) id=abc") == "run.message"
+    assert crewco_dispatch.classify_log_entry("tool: Shell {}  -> denied") == "run.tool_error"
+    assert crewco_dispatch.classify_log_entry("session started (m) id=abc") == "run.message"
 
 
-# --- crewbench_gate.py emission ---------------------------------------------
+# --- crewco_gate.py emission ---------------------------------------------
 
 def test_gate_finished_emits_event(tmp_path, git_repo):
     task_dir = tmp_path / "task"
-    crewbench_gate = importlib.import_module("crewbench_gate")
+    crewco_gate = importlib.import_module("crewco_gate")
     subprocess.run(
-        [sys.executable, str(Path(crewbench_gate.__file__)), "--cwd", str(git_repo),
+        [sys.executable, str(Path(crewco_gate.__file__)), "--cwd", str(git_repo),
          "--task-dir", str(task_dir), "--round", "2"],
         cwd=git_repo, capture_output=True, text=True,
     )
@@ -148,18 +148,18 @@ def test_gate_finished_emits_event(tmp_path, git_repo):
     assert gate_events[0]["run"] is None
 
 
-# --- crewbench_dispatch.py emission (real subprocess, fake CLI) ------------
+# --- crewco_dispatch.py emission (real subprocess, fake CLI) ------------
 
 def _dispatch_argv():
-    return [sys.executable, str(crewbench_dispatch.ROOT / "bin" / "crewbench_dispatch.py")]
+    return [sys.executable, str(crewco_dispatch.ROOT / "bin" / "crewco_dispatch.py")]
 
 
 def test_dispatch_emits_started_message_and_finished_events(git_repo, fake_cli_dir):
     handoff = git_repo / "handoff.md"
     handoff.write_text("Task: anything\n")
-    task_dir = git_repo / ".crewbench" / "tasks" / "t1"
+    task_dir = git_repo / ".crewco" / "tasks" / "t1"
     env = dict(os.environ)
-    env["CREWBENCH_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
+    env["CREWCO_CLI_OVERRIDE_CLAUDE"] = str(fake_cli_dir / "quick_success.py")
 
     result = subprocess.run(
         _dispatch_argv() + ["--role", "developer", "--cli", "claude", "--model", "m",

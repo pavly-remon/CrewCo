@@ -1,23 +1,23 @@
 ---
 name: open
-description: Open a task (or the crewbench UI itself) in the browser, if the crewbench app's daemon is running on this machine. Read-only.
+description: Open a task (or the crewco UI itself) in the browser, if the crewco app's daemon is running on this machine. Read-only.
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
 
-# crewbench: open
+# crewco: open
 
-You open the crewbench web UI (the daemon-hosted standalone app,
-`crewbench ui`, installed separately via `npm i -g crewbench`) to a task,
+You open the crewco web UI (the daemon-hosted standalone app,
+`crewco ui`, installed separately via `npm i -g crewco`) to a task,
 or to its front page if no task id is given. You never start the daemon
 yourself, never read or transmit its auth token, and never change any
 file.
 
 Argument (optional task id): $ARGUMENTS
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 
 ## Why this can't just print an authenticated link
@@ -30,7 +30,7 @@ filesystem can leak API access to it), unchanged by this skill. That
 means this skill can find *where* a running daemon is, but can never
 authenticate a browser tab on its own. The person opening the link
 authenticates through whatever tab already has the token — the one that
-opened automatically when they last ran `crewbench ui`, or `location.hash`
+opened automatically when they last ran `crewco ui`, or `location.hash`
 in an already-open tab. If no such tab is open, the real page still
 loads, it's just not authenticated yet.
 
@@ -39,17 +39,17 @@ loads, it's just not authenticated yet.
 1. Run:
 
    ```
-   python3 <root>/bin/crewbench_daemon_probe.py [task-id]
+   python3 <root>/bin/crewco_daemon_probe.py [task-id]
    ```
 
    passing the task id argument only if one was given. Its own docstring
-   has the full discovery story (checks `~/.crewbench/config.json`'s own
+   has the full discovery story (checks `~/.crewco/config.json`'s own
    `port` field first, falls back to scanning the daemon's real default
    port range) — you don't need to re-derive any of that.
 
 2. If the result's `"found"` is `false`: tell the user no running
-   crewbench daemon was found on this machine, and that they can start
-   one with `crewbench ui` (or `npx crewbench ui` if it isn't installed
+   crewco daemon was found on this machine, and that they can start
+   one with `crewco ui` (or `npx crewco ui` if it isn't installed
    globally). Don't guess a URL or suggest a port — nothing is running.
 
 3. If `"found"` is `true`: open the real `"url"` field in the user's
@@ -61,12 +61,12 @@ loads, it's just not authenticated yet.
    possible**: the UI has no token-entry field anywhere — its bootstrap
    code (`bootstrapToken()`) only ever reads a token from `location.hash`
    once, at page load, so there is nothing to "paste into." Tell the user
-   plainly, accurately: if they already have another crewbench UI tab
+   plainly, accurately: if they already have another crewco UI tab
    open, switch to it (or copy that tab's own address-bar URL, which
    still carries its `#token=...` fragment, into this new tab) — a fresh
    tab with no token in its own URL will load the real page but every
    `/api/` call will 401 until it has one. If no tab is open anywhere,
-   the simplest real fix is running `crewbench ui` themselves, which
+   the simplest real fix is running `crewco ui` themselves, which
    opens one correctly authenticated from the start.
 
 4. Never dump the raw JSON from step 1 on the user — translate it into a

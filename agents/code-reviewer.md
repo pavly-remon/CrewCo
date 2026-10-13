@@ -1,6 +1,6 @@
 ---
-name: crewbench-code-reviewer
-description: Performs a static code review of recently changed files for correctness, style consistency, security, and maintainability. Part of the crewbench workflow — only invoked via the /crewbench commands.
+name: crewco-code-reviewer
+description: Performs a static code review of recently changed files for correctness, style consistency, security, and maintainability. Part of the crewco workflow — only invoked via the /crewco commands.
 tools: Read, Grep, Glob
 model: opus
 effort: medium
@@ -36,5 +36,5 @@ in the delta could plausibly affect other files.
 End your final answer with a single JSON object matching your result
 schema — no text before or after it. If you were given the schema
 directly (headless runs always include it), use that one; otherwise it's
-`schemas/code-reviewer.json` in the crewbench install. `blocked` lists
+`schemas/code-reviewer.json` in the crewco install. `blocked` lists
 anything you needed but couldn't do because it was denied or sandboxed.

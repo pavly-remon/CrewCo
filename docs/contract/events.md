@@ -1,14 +1,14 @@
 # events.jsonl — event catalog
 
-`.crewbench/tasks/<task-id>/events.jsonl` is an append-only, line-delimited
+`.crewco/tasks/<task-id>/events.jsonl` is an append-only, line-delimited
 JSON log of everything that happened to one task. It exists so a long-running
 daemon (Phase 2+) can tail a task's activity without polling `state.json` and
 `status.json` and diffing them itself, and so a restarted daemon can replay
 history from a `seq` offset instead of losing anything.
 
-It is written by three plugin scripts today (`crewbench_state.py`,
-`crewbench_dispatch.py`, `crewbench_gate.py`), all going through one shared
-writer, `crewbench_fs.append_event()`. Nothing else appends to it directly.
+It is written by three plugin scripts today (`crewco_state.py`,
+`crewco_dispatch.py`, `crewco_gate.py`), all going through one shared
+writer, `crewco_fs.append_event()`. Nothing else appends to it directly.
 
 ## Line shape
 
@@ -24,13 +24,13 @@ Every line is one JSON object:
   `schema_version` on `state.json`/`index.json`/`status.json`/the dispatch
   envelope. This is the shape of the event line itself, not the contract
   version of the task.
-- `ts` — UTC ISO-8601 with an explicit `Z` offset (`crewbench_fs.now_iso()`).
+- `ts` — UTC ISO-8601 with an explicit `Z` offset (`crewco_fs.now_iso()`).
   Every event line uses this format from the start — there is no legacy
   events.jsonl format to be compatible with, unlike `state.json`'s
   naive-local timestamps from before this phase.
 - `seq` — a per-task, monotonically increasing, gapless integer starting at
   1. Computed by reading the last line's `seq` under the same lock used for
-  the append itself (`crewbench_fs._last_seq()` + the append, both inside
+  the append itself (`crewco_fs._last_seq()` + the append, both inside
   one `locked_read_modify_write` critical section), so concurrent writers
   (e.g. a tester run and a reviewer run finishing at the same moment) can
   never produce a duplicate `seq` or interleave a partial line. This is an
@@ -50,28 +50,28 @@ Every line is one JSON object:
 ## Event types
 
 ### `task.created`
-Emitted once, by `crewbench_state.py new`.
+Emitted once, by `crewco_state.py new`.
 `data`: `{ "command": "new-task"|"test"|"review"|"design", "title": string, "jira_key": string|null }`
 
 ### `task.phase_changed`
-Emitted by `crewbench_state.py set --key phase` whenever the new value
+Emitted by `crewco_state.py set --key phase` whenever the new value
 differs from the old one (setting the same phase again emits nothing).
 `data`: `{ "from": string|null, "to": string }` — `from` is `null` only if
 `phase` was somehow unset before (shouldn't happen for a task created after
 this phase, since `new` always sets it to `"scoping"`).
 
 ### `task.round_started`
-Emitted by `crewbench_state.py set --key round`, same "only on an actual
+Emitted by `crewco_state.py set --key round`, same "only on an actual
 change" rule as `phase_changed`.
 `data`: `{ "round": integer }`
 
 ### `task.note_added`
-Emitted by `crewbench_state.py append --key notes`.
+Emitted by `crewco_state.py append --key notes`.
 `data`: `{ "note": <value appended> }` — normally a string, but whatever
 JSON value was appended is passed through as-is.
 
 ### `run.started`
-Emitted by `crewbench_dispatch.py` right before it spawns a role's CLI
+Emitted by `crewco_dispatch.py` right before it spawns a role's CLI
 process (foreground or via `start`).
 `data`: `{ "role": string, "cli": string, "model": string, "effort": string }`
 
@@ -86,7 +86,7 @@ run is woken once a slot frees up.
 `data`: `{ "cli": string }`
 
 ### `run.finished`
-Emitted by `crewbench_dispatch.py`'s `finish()`, for every exit path
+Emitted by `crewco_dispatch.py`'s `finish()`, for every exit path
 (success, validation failure, timeout, CLI-not-installed, argv-too-large,
 etc.) — always the last event for a given `run`.
 `data`: `{ "ok": bool, "exit_code": int|null, "duration_s": number|null,
@@ -95,10 +95,10 @@ as the envelope's `usage` field (see `lib/dispatch.md`'s "Usage and
 timing").
 
 ### `run.message` / `run.tool_call` / `run.tool_error`
-Emitted by `crewbench_dispatch.py` for every readable line `Stream.feed()`
+Emitted by `crewco_dispatch.py` for every readable line `Stream.feed()`
 produces while a role's process is running — the same content that goes
 into the `.log` file, structured instead of prose. Classification
-(`crewbench_dispatch.classify_log_entry()`) matches on the fixed textual
+(`crewco_dispatch.classify_log_entry()`) matches on the fixed textual
 prefixes `Stream.feed()` already normalizes every CLI's output into
 (`"tool: ..."`, `"  error: ..."`, plain text), rather than re-parsing each
 CLI's raw stream a second time — cheap, and correct for all four CLIs at
@@ -118,7 +118,7 @@ free text as the log, would need to change `Stream.feed()`'s return value
 itself, not just this classifier.
 
 ### `gate.finished`
-Emitted by `crewbench_gate.py` itself (it already takes `--task-dir` and
+Emitted by `crewco_gate.py` itself (it already takes `--task-dir` and
 `--round`), right after it writes `gate-r<n>.result.json`. `run` is always
 `null` — a gate run isn't a role run.
 `data`: `{ "round": integer, "ok": bool, "steps": [...] }` — `steps` is the
@@ -126,7 +126,7 @@ same array as the gate's own result JSON (`name`, `command`, `exit_code`,
 `duration_s`, `timed_out`, `output_tail` per step).
 
 ### `git.warning`
-Emitted by `crewbench_dispatch.py`, once per warning string
+Emitted by `crewco_dispatch.py`, once per warning string
 `git_changes()` produces after a role's run (see `lib/dispatch.md` §4's
 "Commits" section for the full list of conditions that produce a
 warning — moved HEAD, reverted uncommitted files, a read-only role that

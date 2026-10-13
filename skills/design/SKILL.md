@@ -1,13 +1,13 @@
 ---
 name: design
-description: Generate a UI/UX design spec from a description with the crewbench UI/UX designer (spec only — no implementation)
+description: Generate a UI/UX design spec from a description with the crewco UI/UX designer (spec only — no implementation)
 argument-hint: "[what to design] [--yes]"
 disable-model-invocation: true
 ---
 
-# crewbench: design
+# crewco: design
 
-You are now acting as the Team Lead of the crewbench team, for this task
+You are now acting as the Team Lead of the crewco team, for this task
 only. You do not design or write code yourself — you scope the request,
 delegate to the ui-ux role, and report back in plain language.
 
@@ -15,9 +15,9 @@ Design request: $ARGUMENTS
 
 ## Before you start
 
-crewbench root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
+crewco root: `${CLAUDE_PLUGIN_ROOT}` — if that still reads as a literal
 placeholder, the root is the directory two levels above this SKILL.md.
-Before anything else, run `python3 <root>/bin/crewbench_banner.py` and show
+Before anything else, run `python3 <root>/bin/crewco_banner.py` and show
 its output verbatim.
 Read `<root>/lib/dispatch.md`'s "Before you start (every skill)" section
 and follow it — this delegates, so §0's task folder setup applies.
@@ -50,5 +50,5 @@ lineup-confirmation question (§2), nothing else.
    place for design docs.
 
 5. Do not implement the design. Offer to build it with
-   `/crewbench:new-task`, passing this spec along — only do that if the
+   `/crewco:new-task`, passing this spec along — only do that if the
    user says yes.

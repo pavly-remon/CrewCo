@@ -1,6 +1,6 @@
 # Cross-CLI compatibility matrix
 
-crewbench's Team Lead can run in any of four host CLIs, and can delegate any
+crewco's Team Lead can run in any of four host CLIs, and can delegate any
 role to any of the four CLIs headlessly (or natively where the role's CLI is
 the host — see `lib/dispatch.md` §3). This is a 4 x 4 matrix of **host** x
 **role CLI**, and every cell is tracked here rather than assumed. Statuses:
@@ -10,7 +10,7 @@ the host — see `lib/dispatch.md` §3). This is a 4 x 4 matrix of **host** x
   role CLI, against a real installed CLI, and it produced a valid envelope.
 - **verified (fake CLI only)** — covered by the automated pytest suite,
   which simulates the host (env vars) and the role CLI (a small script
-  standing in for the real one) and drives `crewbench_dispatch.py`
+  standing in for the real one) and drives `crewco_dispatch.py`
   (including `start`/`wait`/`cancel`, schema parsing, env stripping, the
   recursion guard, and simulated sandbox-failure error text) exactly as
   `lib/dispatch.md` instructs the Team Lead to. This exercises the dispatch
@@ -34,7 +34,7 @@ Verification pass; `doctor`-only checks below dated 2026-09-15). Versions:
 | **Copilot CLI** | verified (fake CLI only) | verified (fake CLI only) | verified (fake CLI only) | verified (fake CLI only) |
 
 **What "verified (real)" actually covers on the Claude Code row:** a live
-`crewbench_dispatch.py doctor --cli <cli>` for all four CLIs (2026-09-15,
+`crewco_dispatch.py doctor --cli <cli>` for all four CLIs (2026-09-15,
 Phase 6), confirming each is installed, its config dir is writable, its
 API host is reachable, and it's logged in; **and**, as of this Final
 Verification pass (2026-09-16), one real headless `code-reviewer` dispatch
@@ -77,7 +77,7 @@ practice until someone runs `scripts/matrix_smoke.py` from each host.
   one.
 - **agy auth check** (`doctor`) falls back to `agy models`, a real (small)
   network+auth call, since agy has no dedicated status command either.
-- **Windows** host detection (`crewbench_env.py whoami`'s parent-process
+- **Windows** host detection (`crewco_env.py whoami`'s parent-process
   walk) is untested — no Windows machine was available for this pass.
 - **Plugin-cache paths** in `lib/dispatch.md`'s root-resolution fallback are
   confirmed for Claude Code, Codex and agy (all installed here); Copilot's
@@ -119,7 +119,7 @@ as JSONL"). Confirmed live against a real `codex exec --json` call:
   codex branches; `--json` added to codex's `build_command()`. See
   `docs/contract/events.md` and `tests/fixtures/codex_stream.jsonl`
   (a real captured stream, lightly trimmed) for the parser's test coverage.
-- Verified with two full real dispatches through `crewbench_dispatch.py`
+- Verified with two full real dispatches through `crewco_dispatch.py`
   itself (not just the raw CLI) during this pass: one hitting
   `turn.failed` (unsupported model), one succeeding end-to-end
   (`code-reviewer` role, real structured `result`, real `usage:
@@ -150,26 +150,26 @@ finishes. Confirmed live: `{"lastCallInputTokens", "lastCallOutputTokens",
   last-resort — for copilot, if `--usage-output-file` is ever missing (an
   older version without the flag); for codex it's now fully unused (dead
   as of this change, kept only because copilot still needs the function).
-- Verified with one full real dispatch through `crewbench_dispatch.py`:
+- Verified with one full real dispatch through `crewco_dispatch.py`:
   `code-reviewer` role, real structured `result`, real `usage:
   {input_tokens: 26709, output_tokens: 105}`.
 
 ## Phase 1 milestone 7: TS app real end-to-end verification (2026-09-19)
 
-Ran `crewbench run` (the new TypeScript app's own CLI, not the Python
+Ran `crewco run` (the new TypeScript app's own CLI, not the Python
 plugin) against real, logged-in CLIs in throwaway repos, with a mixed
 lineup (claude lead, agy developer, codex code-reviewer/tester per the
 phase prompt's example) — the same "don't just trust the fake-CLI suite"
 standard Phase 0 milestone 4 and this file's own "verified (real)" rows
 were held to. Two real runs; both surfaced genuine account/environment
 constraints partway through, but between them turned up **five real
-crewbench bugs**, all now fixed and covered by regression tests (`pnpm -r
+crewco bugs**, all now fixed and covered by regression tests (`pnpm -r
 test`: 306 TS tests, 212 Python tests, both green).
 
 **Bugs found live, now fixed:**
 
 1. **`--dev`/`--review` CLI override kept the old CLI's resolved model
-   name.** `crewbench run ... --dev agy --review codex` (no explicit
+   name.** `crewco run ... --dev agy --review codex` (no explicit
    model on either override) printed `developer agy sonnet` — `sonnet` is
    a Claude model, invalid for agy. The lineup builder resolved each
    role's tier once against its *default* CLI, then applied a CLI
@@ -199,7 +199,7 @@ test`: 306 TS tests, 212 Python tests, both green).
    `.question()` calls, closed once via a new `closePrompt()` at the end
    of `bin.ts`'s `main()`.
 4. **Fake-CLI test fixture claimed a file change without writing it.**
-   (Test-fixture bug, not a crewbench bug — caught while building
+   (Test-fixture bug, not a crewco bug — caught while building
    `packages/cli/test/commit-flow.e2e.test.ts`.) A fake developer
    response reported `files_changed` in its JSON result but never touched
    disk, so `git commit` found nothing to commit. Fixed by having the
@@ -219,7 +219,7 @@ test`: 306 TS tests, 212 Python tests, both green).
 - On this machine's codex login, `gpt-5.6-sol` (the `strong` tier in
   `config/defaults.json`) is rejected as "not supported when using Codex
   with a ChatGPT account"; `gpt-5.6-terra` (already confirmed working in
-  Phase 0) works. Not a crewbench issue — an account/plan-specific model
+  Phase 0) works. Not a crewco issue — an account/plan-specific model
   availability constraint, worth knowing about but not fixable in code.
 - A real `claude` dispatch hit this account's session rate limit
   mid-verification (`You've hit your session limit`). A real-world
@@ -237,7 +237,7 @@ above — every real run in this pass used a task that never got asked the
 commit question before hitting a rate limit or needed re-running with a
 different model. That specific path is proven instead by
 `packages/cli/test/commit-flow.e2e.test.ts`, a real subprocess test (real
-`crewbench run` binary, real git operations, real worktree add/merge/
+`crewco run` binary, real git operations, real worktree add/merge/
 remove) using a purpose-built fake CLI instead of a live one — deliberate,
 since a fully automated, repeatable test can't depend on live API access
 or an account's remaining quota. Separately confirmed live: `--yes`
