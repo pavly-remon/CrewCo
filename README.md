@@ -1,5 +1,5 @@
-<img width="200" height="200" alt="CrewCo Logo-selection" src="https://github.com/user-attachments/assets/792e01b5-8351-43ba-9c1d-06d1a4870c1c" />
-
+<img width="128" height="128" alt="crewco-app-icon" src="https://github.com/user-attachments/assets/cb16aa6b-1b59-470d-8a8e-c897b8c58256" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Crewco app icon"><rect width="64" height="64" rx="15" fill="#FF5A2C"></rect><g transform="translate(32 32) scale(0.68) translate(-32 -32)"><g fill="none" stroke="#14161B" stroke-width="10" stroke-linecap="butt"><path d="M48.55 19.07A21 21 0 0 0 28.62 11.27"></path><path d="M24.05 12.56A21 21 0 0 0 11.13 29.62"></path><path d="M11.13 34.38A21 21 0 0 0 24.05 51.44"></path><path d="M28.62 52.73A21 21 0 0 0 48.55 44.93"></path></g><circle cx="48.55" cy="19.07" r="5.0" fill="#14161B"></circle><circle cx="48.55" cy="44.93" r="5.0" fill="#14161B"></circle><circle cx="32" cy="32" r="7.5" fill="#F6F2EA"></circle></g></svg>
 
 # CrewCo
 
